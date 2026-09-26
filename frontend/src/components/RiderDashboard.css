@@ -1,0 +1,324 @@
+/* =========================================
+   RIDER DASHBOARD
+========================================= */
+
+.rider-dashboard {
+  min-height: 100vh;
+  padding: 40px;
+  background: #f4f6fb;
+  color: #172033;
+  box-sizing: border-box;
+}
+
+
+/* =========================================
+   HEADER
+========================================= */
+
+.rider-header {
+  max-width: 1100px;
+  margin: 0 auto 30px;
+  padding: 30px;
+  background: #101827;
+  color: white;
+  border-radius: 18px;
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+.rider-header h1 {
+  margin: 0;
+  font-size: 38px;
+  font-weight: 700;
+}
+
+.rider-header p {
+  margin: 10px 0 0;
+  font-size: 18px;
+  opacity: 0.85;
+}
+
+
+/* =========================================
+   COMMON CARD
+========================================= */
+
+.rider-profile-card,
+.rider-availability-card,
+.rider-rides-card {
+  max-width: 1100px;
+  margin: 0 auto 25px;
+  padding: 30px;
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
+}
+
+
+/* =========================================
+   CARD HEADINGS
+========================================= */
+
+.rider-profile-card h2,
+.rider-availability-card h2,
+.rider-rides-card h2 {
+  margin-top: 0;
+  margin-bottom: 25px;
+  font-size: 24px;
+  color: #172033;
+}
+
+
+/* =========================================
+   PROFILE
+========================================= */
+
+.rider-profile-card p {
+  margin: 14px 0;
+  font-size: 17px;
+  color: #4a5568;
+}
+
+.rider-profile-card strong {
+  color: #172033;
+}
+
+
+/* =========================================
+   AVAILABILITY
+========================================= */
+
+.rider-availability-card {
+  text-align: center;
+}
+
+.availability-status {
+  margin: 20px 0;
+}
+
+.available,
+.offline {
+  display: inline-block;
+  padding: 12px 25px;
+  border-radius: 30px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.available {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.offline {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+
+/* =========================================
+   AVAILABILITY BUTTONS
+========================================= */
+
+.available-button,
+.offline-button {
+  border: none;
+  padding: 13px 30px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.available-button {
+  background: #16a34a;
+  color: white;
+}
+
+.available-button:hover {
+  background: #15803d;
+}
+
+.offline-button {
+  background: #dc2626;
+  color: white;
+}
+
+.offline-button:hover {
+  background: #b91c1c;
+}
+
+
+/* =========================================
+   ASSIGNED RIDES
+========================================= */
+
+.rider-rides-card {
+  text-align: center;
+  min-height: 150px;
+}
+
+.rider-rides-card p {
+  color: #64748b;
+  font-size: 17px;
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 768px) {
+
+  .rider-dashboard {
+    padding: 20px;
+  }
+
+  .rider-header {
+    padding: 25px 15px;
+  }
+
+  .rider-header h1 {
+    font-size: 28px;
+  }
+
+  .rider-header p {
+    font-size: 16px;
+  }
+
+  .rider-profile-card,
+  .rider-availability-card,
+  .rider-rides-card {
+    padding: 22px;
+  }
+
+}
+
+/* =================================
+   ASSIGNED RIDES
+================================= */
+
+.assigned-rides-list {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  margin-top: 25px;
+}
+
+.assigned-ride {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 28px;
+  text-align: left;
+}
+
+.assigned-ride-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.assigned-ride-header h3 {
+  margin: 0;
+  font-size: 24px;
+  color: #172033;
+}
+
+.ride-status {
+  background: #fff3cd;
+  color: #9a5b00;
+  padding: 10px 18px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.ride-section {
+  margin-top: 20px;
+  padding: 20px;
+  background: white;
+  border-radius: 14px;
+}
+
+.ride-section h4 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #172033;
+  font-size: 18px;
+}
+
+.ride-section p {
+  margin: 10px 0;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.ride-section strong {
+  color: #172033;
+}
+
+.accept-assigned-button {
+  margin-top: 25px;
+  padding: 13px 25px;
+  border: none;
+  border-radius: 10px;
+  background: #16a34a;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.accept-assigned-button:hover {
+  opacity: 0.9;
+}
+
+/* ========================================
+   Rider Current Location
+======================================== */
+
+.rider-location-card {
+  background: white;
+  padding: 25px;
+  border-radius: 18px;
+  margin-bottom: 25px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.rider-location-card h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #172033;
+}
+
+.location-details {
+  background: #f5f7fb;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.location-details p {
+  margin: 8px 0;
+  color: #374151;
+  font-size: 16px;
+}
+
+.location-live {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 8px 15px;
+  background: #dcfce7;
+  color: #15803d;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.location-unavailable {
+  color: #6b7280;
+  font-size: 16px;
+}
