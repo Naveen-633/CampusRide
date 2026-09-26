@@ -292,7 +292,13 @@ function CampusMap({
   const [riderRouteDuration, setRiderRouteDuration] = useState(null);
   const [riderRouteLoading, setRiderRouteLoading] = useState(false);
 
+  const [notificationEnabled, setNotificationEnabled] =
+  useState(false);
 
+  const previousRideStatus = useRef({
+  rideId: null,
+  status: null,
+   });
 
     // ------------------------------------
   // SYNC LANDMARK SELECTION WITH MAP
@@ -420,6 +426,7 @@ useEffect(() => {
 
   const previousActiveRideId = useRef(null);
   const lastCompletedRideId = useRef(null);
+  const activeRideRequestId = useRef(0);
 
 let riderDistance = null;
 let riderEta = null;
@@ -477,11 +484,140 @@ const mapDestination =
     localStorage.getItem("campusrideUser")
   );
 
+
+  // ------------------------------------
+// STUDENT NOTIFICATION SOUND
+// ------------------------------------
+
+const playStudentNotificationSound = () => {
+  try {
+
+    const AudioContext =
+      window.AudioContext ||
+      window.webkitAudioContext;
+
+    if (!AudioContext) {
+      return;
+    }
+
+    const audioContext = new AudioContext();
+
+    const now = audioContext.currentTime;
+
+    // First tone
+    const oscillator1 =
+      audioContext.createOscillator();
+
+    const gain1 =
+      audioContext.createGain();
+
+    oscillator1.connect(gain1);
+    gain1.connect(audioContext.destination);
+
+    oscillator1.type = "sine";
+
+    oscillator1.frequency.setValueAtTime(
+      660,
+      now
+    );
+
+    gain1.gain.setValueAtTime(
+      0.0001,
+      now
+    );
+
+    gain1.gain.exponentialRampToValueAtTime(
+      0.35,
+      now + 0.02
+    );
+
+    gain1.gain.exponentialRampToValueAtTime(
+      0.0001,
+      now + 0.22
+    );
+
+    oscillator1.start(now);
+    oscillator1.stop(now + 0.23);
+
+
+    // Second tone
+    const oscillator2 =
+      audioContext.createOscillator();
+
+    const gain2 =
+      audioContext.createGain();
+
+    oscillator2.connect(gain2);
+    gain2.connect(audioContext.destination);
+
+    oscillator2.type = "sine";
+
+    oscillator2.frequency.setValueAtTime(
+      880,
+      now + 0.12
+    );
+
+    gain2.gain.setValueAtTime(
+      0.0001,
+      now + 0.12
+    );
+
+    gain2.gain.exponentialRampToValueAtTime(
+      0.35,
+      now + 0.14
+    );
+
+    gain2.gain.exponentialRampToValueAtTime(
+      0.0001,
+      now + 0.42
+    );
+
+    oscillator2.start(now + 0.12);
+    oscillator2.stop(now + 0.43);
+
+
+    setTimeout(() => {
+      audioContext.close();
+    }, 600);
+
+  } catch (error) {
+
+    console.error(
+      "Student notification sound error:",
+      error
+    );
+
+  }
+};
+
+const showStudentRideAcceptedNotification = (ride) => {
+
+  playStudentNotificationSound();
+
+  if (
+    "Notification" in window &&
+    Notification.permission === "granted"
+  ) {
+
+    new Notification(
+      "🏍️ Ride Accepted",
+      {
+        body:
+          `Your rider has accepted Ride #${ride.id}.`,
+      }
+    );
+
+  }
+
+};
+
   // Fetch student's latest rides
  const fetchActiveRide = async () => {
   if (!user?.id) {
     return;
   }
+
+  const requestId = ++activeRideRequestId.current;
 
   try {
     const response = await fetch(
@@ -494,6 +630,12 @@ const mapDestination =
 
     const data = await response.json();
 
+    // Ignore an older response if a newer request
+    // has already started.
+   if (requestId !== activeRideRequestId.current) {
+   return;
+   }
+
     // Backend may return:
     // { rides: [...] }
     // or directly [...]
@@ -503,34 +645,120 @@ const mapDestination =
       return;
     }
 
-    // ------------------------------------
-    // FIND ACTIVE RIDE
-    // ------------------------------------
+   // ------------------------------------
+// FIND ACTIVE RIDE
+// ------------------------------------
 
-    const ride = rides.find(
+const ride = rides.find(
   (r) =>
     r.status === "REQUESTED" ||
     r.status === "DRIVER_ASSIGNED" ||
     r.status === "RIDER_ACCEPTED" ||
     r.status === "ONGOING"
-   );
+);
 
-    // ------------------------------------
-    // FIND LATEST COMPLETED RIDE
-    // ------------------------------------
+// ------------------------------------
+// FIND LATEST COMPLETED RIDE
+// ------------------------------------
 
-    const completedRides = rides
-      .filter((r) => r.status === "COMPLETED")
-      .sort(
-        (a, b) =>
-          new Date(b.created_at) -
-          new Date(a.created_at)
-      );
+const completedRides = rides
+  .filter((r) => r.status === "COMPLETED")
+  .sort(
+    (a, b) =>
+      new Date(b.created_at) -
+      new Date(a.created_at)
+  );
 
-    const latestCompletedRide =
-      completedRides.length > 0
-        ? completedRides[0]
-        : null;
+const latestCompletedRide =
+  completedRides.length > 0
+    ? completedRides[0]
+    : null;
+
+// ------------------------------------
+// FIRST TIME INITIALIZATION
+// ------------------------------------
+
+if (lastCompletedRideId.current === null) {
+  if (latestCompletedRide) {
+    lastCompletedRideId.current =
+      latestCompletedRide.id;
+  }
+}
+
+// ------------------------------------
+// ACTIVE RIDE EXISTS
+// ------------------------------------
+
+if (ride) {
+  setActiveRide(ride);
+
+  previousActiveRideId.current = ride.id;
+
+  if (
+    ride.rider_lat !== null &&
+    ride.rider_lat !== undefined &&
+    ride.rider_lng !== null &&
+    ride.rider_lng !== undefined
+  ) {
+    setRiderLocation([
+      Number(ride.rider_lat),
+      Number(ride.rider_lng),
+    ]);
+  } else {
+    setRiderLocation(null);
+  }
+
+  return;
+}
+
+// ------------------------------------
+// NO ACTIVE RIDE
+// ------------------------------------
+
+setActiveRide(null);
+setRiderLocation(null);
+
+// ------------------------------------
+// CHECK FOR NEWLY COMPLETED RIDE
+// ------------------------------------
+
+if (latestCompletedRide) {
+  const latestCompletedId =
+    latestCompletedRide.id;
+
+  if (
+    lastCompletedRideId.current !==
+    latestCompletedId
+  ) {
+    setCompletedRide(latestCompletedRide);
+
+    lastCompletedRideId.current =
+      latestCompletedId;
+
+    // Clear old booking message
+    setRideMessage("");
+  }
+}
+
+// ------------------------------------
+// Detect RIDER_ACCEPTED status change
+// ------------------------------------
+
+if (
+  previousRideStatus.current.rideId === ride.id &&
+  previousRideStatus.current.status === "DRIVER_ASSIGNED" &&
+  ride.status === "RIDER_ACCEPTED"
+) {
+  showStudentRideAcceptedNotification(ride);
+}
+
+// Remember current ride + status
+previousRideStatus.current = {
+  rideId: ride.id,
+  status: ride.status,
+ };
+
+
 
     // ------------------------------------
     // FIRST TIME INITIALIZATION
@@ -583,12 +811,7 @@ const mapDestination =
       return;
     }
 
-    // ------------------------------------
-    // NO ACTIVE RIDE
-    // ------------------------------------
-
-    setActiveRide(null);
-    setRiderLocation(null);
+    
 
     // ------------------------------------
     // CHECK FOR NEWLY COMPLETED RIDE
@@ -760,23 +983,47 @@ const mapDestination =
 ]);
 
   // Poll rider location every 3 seconds
-  useEffect(() => {
-    if (!user?.id) {
+ // ------------------------------------
+// SAFE ACTIVE RIDE POLLING
+// ------------------------------------
+
+useEffect(() => {
+  if (!user?.id) {
+    return;
+  }
+
+  let stopped = false;
+  let timer = null;
+
+  const pollActiveRide = async () => {
+    if (stopped) {
       return;
     }
 
-    // Fetch immediately
-    fetchActiveRide();
+    await fetchActiveRide();
 
-    // Then update every 3 seconds
-    const interval = setInterval(() => {
-      fetchActiveRide();
+    if (stopped) {
+      return;
+    }
+
+    // Start the next request only AFTER
+    // the previous request has finished.
+    timer = setTimeout(() => {
+      pollActiveRide();
     }, 3000);
+  };
 
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
+  // Fetch immediately
+  pollActiveRide();
+
+  return () => {
+    stopped = true;
+
+    if (timer) {
+      clearTimeout(timer);
+    }
+  };
+}, []);
 
   // ------------------------------------
   // MAP LOCATION SELECTION
@@ -948,6 +1195,44 @@ if (pickup && destination) {
         )}
 
       </div>
+
+{/* -------------------------------- */}
+{/* STUDENT NOTIFICATIONS */}
+{/* -------------------------------- */}
+
+<button
+  onClick={async () => {
+
+    if (!("Notification" in window)) {
+
+      alert(
+        "Browser notifications are not supported."
+      );
+
+      return;
+    }
+
+    const permission =
+      await Notification.requestPermission();
+
+    if (permission === "granted") {
+
+      setNotificationEnabled(true);
+
+      playStudentNotificationSound();
+
+      alert(
+        "🔔 Student notifications enabled!"
+      );
+
+    }
+
+  }}
+>
+  {notificationEnabled
+    ? "🔔 Notifications ON"
+    : "🔕 Enable Notifications"}
+</button>
 
       {/* -------------------------------- */}
       {/* LIVE RIDER STATUS */}
@@ -1266,39 +1551,49 @@ if (pickup && destination) {
   <div
     style={{
       marginBottom: "15px",
-      padding: "22px",
-      borderRadius: "14px",
+      padding: "25px",
+      borderRadius: "16px",
       background: "#ecfdf5",
       border: "1px solid #86efac",
       textAlign: "center",
-      boxShadow: "0 4px 15px rgba(0,0,0,0.08)",
+      boxShadow: "0 5px 18px rgba(0,0,0,0.10)",
     }}
   >
 
-    <h2
+    <div
       style={{
-        marginTop: 0,
-        marginBottom: "10px",
+        fontSize: "42px",
+        marginBottom: "8px",
       }}
     >
-      ✅ Ride Completed
+      🎉
+    </div>
+
+    <h2
+      style={{
+        margin: "0 0 10px 0",
+        color: "#166534",
+      }}
+    >
+      Ride Completed
     </h2>
 
     <p
       style={{
         fontSize: "17px",
         fontWeight: "600",
-        marginBottom: "15px",
+        marginBottom: "18px",
       }}
     >
-      Thank you for riding with CampusRide! 🚕
+      Thank you for riding with CampusRide! 🏍️
     </p>
 
     <div
       style={{
         display: "grid",
-        gap: "8px",
-        fontSize: "15px",
+        gap: "10px",
+        fontSize: "16px",
+        marginBottom: "18px",
       }}
     >
 
@@ -1310,26 +1605,48 @@ if (pickup && destination) {
       </div>
 
       <div>
-        💰 Fare:{" "}
+        📍 Pickup:{" "}
         <strong>
-          ₹{Number(completedRide.estimated_fare).toFixed(2)}
+          {completedRide.pickup_name ||
+            "Pickup location"}
         </strong>
       </div>
+
+      <div>
+        🏁 Destination:{" "}
+        <strong>
+          {completedRide.destination_name ||
+            "Destination"}
+        </strong>
+      </div>
+
+      <div>
+  📏 Distance:{" "}
+  <strong>
+    {Number(completedRide.distance_km).toFixed(2)} km
+  </strong>
+</div>
+
+<div>
+  💰 Fare:{" "}
+  <strong>
+    ₹{Number(completedRide.estimated_fare).toFixed(2)}
+  </strong>
+</div>
 
     </div>
 
     <button
       onClick={() => setCompletedRide(null)}
       style={{
-        marginTop: "15px",
-        padding: "10px 18px",
+        padding: "11px 20px",
         border: "none",
-        borderRadius: "8px",
+        borderRadius: "9px",
         cursor: "pointer",
         fontWeight: "bold",
       }}
     >
-      View My Rides
+      📋 View My Rides
     </button>
 
   </div>
