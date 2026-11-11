@@ -4,6 +4,8 @@ import RiderRideMap from "./RiderRideMap";
 
 function RiderDashboard() {
 
+  const [startPins, setStartPins] = useState({});
+
   const [rider, setRider] = useState(null);
   const [rides, setRides] = useState([]);
 
@@ -59,14 +61,14 @@ const playRideNotificationSound = () => {
     );
 
     gain.gain.setValueAtTime(
-      0.3,
+      4.0,
       audioContext.currentTime
     );
 
     oscillator.start();
 
     oscillator.stop(
-      audioContext.currentTime + 0.5
+      audioContext.currentTime + 1.50
     );
 
     setTimeout(() => {
@@ -706,6 +708,12 @@ const rejectRide = async (rideId) => {
   // Start Ride
   // ------------------------------------
   const startRide = async (rideId) => {
+    const pin = startPins[rideId] || "";
+
+if (!/^\d{4}$/.test(pin)) {
+  alert("Please enter the 4-digit PIN provided by the passenger.");
+  return;
+}
     try {
       const response = await fetch(
         `http://localhost:5001/api/rides/${rideId}/start`,
@@ -714,9 +722,10 @@ const rejectRide = async (rideId) => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            riderId: rider.id,
-          }),
+         body: JSON.stringify({
+  riderId: rider.id,
+  pin: pin,
+}),
         }
       );
 
@@ -729,6 +738,11 @@ const rejectRide = async (rideId) => {
         );
         return;
       }
+
+      setStartPins((prev) => ({
+  ...prev,
+  [rideId]: "",
+}));
 
       // Refresh assigned rides
       const ridesResponse = await fetch(
@@ -858,7 +872,7 @@ const rejectRide = async (rideId) => {
       <div className="rider-header">
 
         <h1>
-          🏍️ CampusRide Rider
+          🏍️ 4Mi Rides Rider
         </h1>
 
         <p>
@@ -1019,19 +1033,234 @@ const rejectRide = async (rideId) => {
 
       </div>
 
-      {activeRide && (
-     <RiderRideMap
-     ride={activeRide}
-     riderLocation={location}
-     />
-     )}
+     {/* ========================================
+    CURRENT RIDE
+    ======================================== */}
 
+{activeRide && (
+  <div className="current-ride-card">
+
+    <div className="current-ride-header">
+
+      <div>
+        <p className="current-ride-label">
+          CURRENT RIDE
+        </p>
+
+        <h2>
+          🏍️ Ride #{activeRide.id}
+        </h2>
+      </div>
+
+      <span
+        className={`current-ride-status status-${activeRide.status.toLowerCase()}`}
+      >
+        {activeRide.status === "DRIVER_ASSIGNED" &&
+          "🟡 NEW RIDE"}
+
+        {activeRide.status === "RIDER_ACCEPTED" &&
+          "🔵 ACCEPTED"}
+
+        {activeRide.status === "ONGOING" &&
+          "🟢 ONGOING"}
+      </span>
+
+    </div>
+
+
+    {/* Student */}
+
+    {["DRIVER_ASSIGNED", "RIDER_ACCEPTED", "ONGOING"].includes(
+      activeRide.status
+    ) && (
+
+      <div className="current-ride-student">
+
+        <div className="student-avatar">
+          👤
+        </div>
+
+        <div>
+          <span>Passenger</span>
+
+          <strong>
+            {activeRide.full_name}
+          </strong>
+
+          {activeRide.mobile && (
+            <small>
+              📞 {activeRide.mobile}
+            </small>
+          )}
+        </div>
+
+        
+
+      </div>
+
+    )}
+
+
+    {/* Route */}
+
+    <div className="current-ride-route">
+
+      <div className="route-point">
+
+        <span className="route-icon pickup-icon">
+          📍
+        </span>
+
+        <div>
+          <span>Pickup</span>
+
+         <strong>
+  {activeRide.pickup_name || "Pickup location"}
+</strong>
+        </div>
+
+      </div>
+
+
+      <div className="route-line"></div>
+
+
+      <div className="route-point">
+
+        <span className="route-icon destination-icon">
+          🏁
+        </span>
+
+        <div>
+          <span>Destination</span>
+
+         <strong>
+  {activeRide.destination_name || "Destination"}
+</strong>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    {/* Ride Stats */}
+
+    <div className="current-ride-stats">
+
+      <div>
+        <span>Distance</span>
+        <strong>
+          {Number(activeRide.distance_km).toFixed(2)} km
+        </strong>
+      </div>
+
+      <div>
+        <span>Fare</span>
+        <strong>
+          ₹{Number(activeRide.estimated_fare).toFixed(2)}
+        </strong>
+      </div>
+
+    </div>
+
+
+    {/* Main Action */}
+
+    <div className="current-ride-actions">
+
+      {activeRide.status === "DRIVER_ASSIGNED" && (
+        <>
+          <button
+            className="current-accept-button"
+            onClick={() =>
+              acceptRide(activeRide.id)
+            }
+          >
+            ✅ Accept Ride
+          </button>
+
+          <button
+            className="current-reject-button"
+            onClick={() =>
+              rejectRide(activeRide.id)
+            }
+          >
+            ❌ Reject
+          </button>
+        </>
+      )}
+
+
+      {activeRide.status === "RIDER_ACCEPTED" && (
+        <div className="start-ride-verification current-ride-verification">
+          <label htmlFor={`current-start-pin-${activeRide.id}`}>
+            🔐 Enter 4-digit Ride PIN
+          </label>
+
+          <input
+            id={`current-start-pin-${activeRide.id}`}
+            type="password"
+            inputMode="numeric"
+            autoComplete="off"
+            maxLength={4}
+            pattern="[0-9]{4}"
+            placeholder="••••"
+            value={startPins[activeRide.id] || ""}
+            onChange={(event) => {
+              const value = event.target.value.replace(/\D/g, "").slice(0, 4);
+
+              setStartPins((prev) => ({
+                ...prev,
+                [activeRide.id]: value,
+              }));
+            }}
+          />
+
+          <button
+            className="start-ride-button"
+            onClick={() => startRide(activeRide.id)}
+            disabled={(startPins[activeRide.id] || "").length !== 4}
+          >
+            🚀 Verify PIN & Start Ride
+          </button>
+        </div>
+      )}
+
+
+      {activeRide.status === "ONGOING" && (
+        <button
+          className="current-complete-button"
+          onClick={() =>
+            completeRide(activeRide.id)
+          }
+        >
+          ✅ Complete Ride
+        </button>
+      )}
+
+    </div>
+
+  </div>
+)}
+
+
+{/* ========================================
+    LIVE RIDE MAP
+======================================== */}
+
+{activeRide && (
+  <RiderRideMap
+    ride={activeRide}
+    riderLocation={location}
+  />
+)}
       {/* ASSIGNED RIDES */}
 
       <div className="rider-rides-card">
 
         <h2>
-          🚕 Assigned Rides
+         🏍️ Assigned Rides
         </h2>
 
 
@@ -1067,9 +1296,21 @@ const rejectRide = async (rideId) => {
                     Ride #{ride.id}
                   </h3>
 
-                  <span className="ride-status">
-                    {ride.status}
-                  </span>
+                 <span
+  className={`ride-status status-${ride.status.toLowerCase()}`}
+>
+  {ride.status === "DRIVER_ASSIGNED" && "🟡 NEW RIDE"}
+
+  {ride.status === "RIDER_ACCEPTED" && "🔵 ACCEPTED"}
+
+  {ride.status === "ONGOING" && "🟢 ONGOING"}
+
+  {ride.status === "COMPLETED" && "✅ COMPLETED"}
+
+  {ride.status === "CANCELLED" && "❌ CANCELLED"}
+
+  {ride.status === "REJECTED" && "↩️ REJECTED"}
+</span>
 
                 </div>
 
@@ -1083,7 +1324,7 @@ const rejectRide = async (rideId) => {
   <div className="ride-section">
 
     <h4>
-      👤 Student Details
+      👤 Passenger Details
     </h4>
 
     <p>
@@ -1091,10 +1332,6 @@ const rejectRide = async (rideId) => {
       {ride.full_name}
     </p>
 
-    <p>
-      <strong>Student ID:</strong>{" "}
-      {ride.student_id}
-    </p>
 
     <p>
       <strong>Mobile:</strong>{" "}
@@ -1113,19 +1350,22 @@ const rejectRide = async (rideId) => {
                     📍 Ride Details
                   </h4>
 
-                  <p>
-                    <strong>Pickup:</strong>{" "}
-                    {Number(ride.pickup_lat).toFixed(5)},
-                    {" "}
-                    {Number(ride.pickup_lng).toFixed(5)}
-                  </p>
+               <div>
+<div className="ride-detail">
+  <span>👥 Number of Persons</span>
+  <strong>{ride.passenger_count ?? 1}</strong>
+</div>
+</div>
 
-                  <p>
-                    <strong>Destination:</strong>{" "}
-                    {Number(ride.destination_lat).toFixed(5)},
-                    {" "}
-                    {Number(ride.destination_lng).toFixed(5)}
-                  </p>
+       <p>   
+  <strong>📍 Pickup:</strong>{" "}
+  {ride.pickup_name || "Pickup location"}
+</p>
+
+                 <p>
+  <strong>🏁 Destination:</strong>{" "}
+  {ride.destination_name || "Destination"}
+</p>
 
                   <p>
                     <strong>Distance:</strong>{" "}
@@ -1147,11 +1387,7 @@ const rejectRide = async (rideId) => {
                 {ride.status === "DRIVER_ASSIGNED" && (
 
   <div
-    style={{
-      display: "flex",
-      gap: "10px",
-      marginTop: "12px",
-    }}
+   className="ride-action-row"
   >
 
     <button
@@ -1177,18 +1413,41 @@ const rejectRide = async (rideId) => {
 )}
 
 
-                {ride.status === "RIDER_ACCEPTED" && (
+               
+{ride.status === "RIDER_ACCEPTED" && (
+  <div className="start-ride-verification">
+    <label htmlFor={`start-pin-${ride.id}`}>
+      🔐 Enter 4-digit Ride PIN
+    </label>
 
-                  <button
-                    className="start-ride-button"
-                    onClick={() =>
-                      startRide(ride.id)
-                    }
-                  >
-                    🚀 Start Ride
-                  </button>
+    <input
+      id={`start-pin-${ride.id}`}
+      type="password"
+      inputMode="numeric"
+      autoComplete="off"
+      maxLength={4}
+      pattern="[0-9]{4}"
+      placeholder="••••"
+      value={startPins[ride.id] || ""}
+      onChange={(event) => {
+        const value = event.target.value.replace(/\D/g, "").slice(0, 4);
 
-                )}
+        setStartPins((prev) => ({
+          ...prev,
+          [ride.id]: value,
+        }));
+      }}
+    />
+
+    <button
+      className="start-ride-button"
+      onClick={() => startRide(ride.id)}
+      disabled={(startPins[ride.id] || "").length !== 4}
+    >
+      🚀 Verify PIN & Start Ride
+    </button>
+  </div>
+)}
 
 
                 {ride.status === "ONGOING" && (

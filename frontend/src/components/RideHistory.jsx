@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-
+import { useEffect, useRef, useState } from "react";
 
 function getRideStatus(status) {
   switch (status) {
@@ -58,6 +57,8 @@ function RideHistory() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const ridesRequestId = useRef(0);
+
 
   const cancelRide = async (rideId) => {
   const confirmed = window.confirm(
@@ -114,72 +115,91 @@ function RideHistory() {
 };
 
 
- useEffect(() => {
+ 
+useEffect(() => {
+  let stopped = false;
+  let timer = null;
 
   const fetchRides = async () => {
+    const requestId = ++ridesRequestId.current;
 
     try {
-
       const user = JSON.parse(
         localStorage.getItem("campusrideUser")
       );
 
       if (!user) {
-        setError("Please login first.");
-        setLoading(false);
+        if (requestId === ridesRequestId.current) {
+          setError("Please login first.");
+          setLoading(false);
+        }
         return;
       }
 
       const response = await fetch(
-        `http://localhost:5001/api/rides/user/${user.id}`
-      );
+  `http://localhost:5001/api/rides/user/${user.id}`,
+  {
+    method: "GET",
+    cache: "no-store",
+    headers: {
+      "Cache-Control": "no-cache",
+      "Pragma": "no-cache"
+    }
+  }
+);
 
       const data = await response.json();
 
+      // Ignore older responses that could overwrite newer ride statuses.
+      if (requestId !== ridesRequestId.current) {
+        return;
+      }
+
       if (!response.ok) {
-        setError(
-          data.message ||
-          "Unable to load rides."
-        );
+        setError(data.message || "Unable to load rides.");
         return;
       }
 
       setRides(data.rides || []);
-
+      setError("");
     } catch (err) {
+      if (requestId !== ridesRequestId.current) {
+        return;
+      }
 
-      console.error(err);
-
-      setError(
-        "Unable to connect to server."
-      );
-
+      console.error("Fetch rides error:", err);
+      setError("Unable to connect to server.");
     } finally {
-
-      setLoading(false);
-
+      if (requestId === ridesRequestId.current) {
+        setLoading(false);
+      }
     }
-
   };
 
-  // Fetch immediately
-  fetchRides();
+  const pollRides = async () => {
+    if (stopped) return;
 
-  // Refresh ride status every 3 seconds
-  const interval = setInterval(() => {
-    fetchRides();
-  }, 3000);
+    await fetchRides();
 
-  // Stop polling when component is removed
+    if (stopped) return;
+
+    // Wait for the current request before starting the next poll.
+    timer = setTimeout(pollRides, 3000);
+  };
+
+  pollRides();
+
   return () => {
-    clearInterval(interval);
+    stopped = true;
+    if (timer) clearTimeout(timer);
+    ridesRequestId.current++;
   };
-
 }, []);
+
   if (loading) {
     return (
       <div className="ride-history">
-        <h2>🚕 My Rides</h2>
+        <h2> My Rides</h2>
         <p>Loading your rides...</p>
       </div>
     );
@@ -188,7 +208,7 @@ function RideHistory() {
   if (error) {
     return (
       <div className="ride-history">
-        <h2>🚕 My Rides</h2>
+        <h2> My Rides</h2>
         <p>{error}</p>
       </div>
     );
@@ -197,7 +217,7 @@ function RideHistory() {
   return (
     <div className="ride-history">
 
-      <h2>🚕 My Rides</h2>
+      <h2> My Rides</h2>
 
       {rides.length === 0 ? (
         <p>No rides found.</p>
@@ -214,7 +234,7 @@ function RideHistory() {
 
               <div className="ride-history-header">
                 <strong>
-                  🚕 Ride #{ride.id}
+                 🏍️ Ride #{ride.id}
                 </strong>
 
                 <span className="ride-status">

@@ -24,7 +24,7 @@ const campusCenter = [
 // ------------------------------------
 
 const riderIcon = L.divIcon({
-  className: "campusride-rider-icon",
+  className: "4Mi Rides-rider-icon",
   html: `
     <div style="
       width: 42px;
@@ -48,7 +48,7 @@ const riderIcon = L.divIcon({
 
 
 const selectedRiderIcon = L.divIcon({
-  className: "campusride-selected-rider-icon",
+  className: "4Mi Rides-selected-rider-icon",
   html: `
     <div style="
       width: 50px;
@@ -73,7 +73,7 @@ const selectedRiderIcon = L.divIcon({
 
 
 const pickupIcon = L.divIcon({
-  className: "campusride-pickup-icon",
+  className: "4Mi Rides-pickup-icon",
   html: `
     <div style="
       width: 38px;
@@ -97,7 +97,7 @@ const pickupIcon = L.divIcon({
 
 
 const destinationIcon = L.divIcon({
-  className: "campusride-destination-icon",
+  className: "4Mi Rides-destination-icon",
   html: `
     <div style="
       width: 38px;
@@ -316,7 +316,7 @@ function AdminRiderMap({ selectedRide }) {
         >
 
           <h3>
-            🚕 Ride #{selectedRide.id}
+            🏍️ Ride #{selectedRide.id}
           </h3>
 
           <p>

@@ -368,7 +368,7 @@ function RiderRideMap({
          {riderRouteLoading
          ? "🗺️ CALCULATING ROUTE..."
          : ride.status === "ONGOING"
-         ? "🚕 RIDE IN PROGRESS"
+         ? "🏍️ RIDE IN PROGRESS"
          : "📍 GO TO PICKUP"}
         </span>
 
@@ -416,12 +416,12 @@ function RiderRideMap({
           <Popup>
 
             <strong>
-              📍 Student Pickup Location
+              📍  Pickup Location
             </strong>
 
             <br />
 
-            This is where the student is waiting.
+            This is where the passenger is waiting.
 
             <br />
 
@@ -447,7 +447,7 @@ function RiderRideMap({
           <Popup>
 
             <strong>
-              🏁 Student Destination
+              🏁  Destination
             </strong>
 
             <br />
@@ -616,9 +616,9 @@ function RiderRideMap({
         {ride.status === "ONGOING" ? (
 
           <>
-            🚕 <strong>Ride in progress.</strong>
+            🏍️ <strong>Ride in progress.</strong>
             <br />
-            Follow the route toward the student's
+            Follow the route toward the passenger's
             destination.
           </>
 
@@ -628,7 +628,7 @@ function RiderRideMap({
             📍 <strong>Go to the pickup location.</strong>
             <br />
             The green 📍 marker shows where the
-            student is waiting.
+            passenger is waiting.
           </>
 
         )}

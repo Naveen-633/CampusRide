@@ -127,51 +127,47 @@ function SmoothRiderMarker({ position, icon }) {
   const previousPosition = useRef(position);
 
   useEffect(() => {
-    if (!position || !markerRef.current) {
-      return;
+  if (!position || !markerRef.current) return;
+
+  let animationFrame;
+  let cancelled = false;
+
+  const start = previousPosition.current || position;
+  const end = position;
+  const startTime = performance.now();
+  const duration = 1200;
+
+  const animate = (currentTime) => {
+    if (cancelled || !markerRef.current) return;
+
+    const progress = Math.min(
+      (currentTime - startTime) / duration,
+      1
+    );
+
+    const eased =
+      progress < 0.5
+        ? 2 * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+    const lat = start[0] + (end[0] - start[0]) * eased;
+    const lng = start[1] + (end[1] - start[1]) * eased;
+
+    markerRef.current.setLatLng([lat, lng]);
+
+    if (progress < 1) {
+      animationFrame = requestAnimationFrame(animate);
     }
+  };
 
-    const start = previousPosition.current || position;
-    const end = position;
+  animationFrame = requestAnimationFrame(animate);
+  previousPosition.current = position;
 
-    const startTime = performance.now();
-    const duration = 1200;
-
-    const animate = (currentTime) => {
-      const progress = Math.min(
-        (currentTime - startTime) / duration,
-        1
-      );
-
-      // Smooth easing
-      const eased =
-        progress < 0.5
-          ? 2 * progress * progress
-          : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-
-      const lat =
-        start[0] +
-        (end[0] - start[0]) * eased;
-
-      const lng =
-        start[1] +
-        (end[1] - start[1]) * eased;
-
-      markerRef.current.setLatLng([
-        lat,
-        lng,
-      ]);
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      }
-    };
-
-    requestAnimationFrame(animate);
-
-    previousPosition.current = position;
-
-  }, [position]);
+  return () => {
+    cancelled = true;
+    cancelAnimationFrame(animationFrame);
+  };
+}, [position]);
 
   return (
     <Marker
@@ -286,6 +282,15 @@ function CampusMap({
 
   const [rideMessage, setRideMessage] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const [fareQuote, setFareQuote] = useState(null);
+const [fareQuoteLoading, setFareQuoteLoading] = useState(false);
+const [fareQuoteError, setFareQuoteError] = useState("");
+
+const [passengerCount, setPassengerCount] = useState(1);
+
+const [manualPickup, setManualPickup] = useState(false);
+const [manualDestination, setManualDestination] = useState(false);
 
   const [riderRouteCoordinates, setRiderRouteCoordinates] = useState([]);
   const [riderRouteDistance, setRiderRouteDistance] = useState(null);
@@ -423,6 +428,7 @@ useEffect(() => {
   const [activeRide, setActiveRide] = useState(null);
   const [riderLocation, setRiderLocation] = useState(null);
   const [completedRide, setCompletedRide] = useState(null);
+  const [showBookingForm, setShowBookingForm] = useState(true);
 
   const previousActiveRideId = useRef(null);
   const lastCompletedRideId = useRef(null);
@@ -583,7 +589,7 @@ const playStudentNotificationSound = () => {
   } catch (error) {
 
     console.error(
-      "Student notification sound error:",
+      "Passenger notification sound error:",
       error
     );
 
@@ -690,6 +696,19 @@ if (lastCompletedRideId.current === null) {
 // ------------------------------------
 
 if (ride) {
+
+  if (
+  previousRideStatus.current.rideId === ride.id &&
+  previousRideStatus.current.status === "DRIVER_ASSIGNED" &&
+  ride.status === "RIDER_ACCEPTED"
+) {
+  showStudentRideAcceptedNotification(ride);
+}
+
+previousRideStatus.current = {
+  rideId: ride.id,
+  status: ride.status,
+};
   setActiveRide(ride);
 
   previousActiveRideId.current = ride.id;
@@ -718,6 +737,30 @@ if (ride) {
 setActiveRide(null);
 setRiderLocation(null);
 
+// Check whether the ride we were tracking was cancelled.
+const previousRide = rides.find(
+  (r) => r.id === previousActiveRideId.current
+);
+
+if (previousRide?.status === "CANCELLED") {
+  // Remove the cancelled ride's booking details.
+  setPickup(null);
+setDestination(null);
+
+setManualPickup(false);
+setManualDestination(false);
+
+setFareQuote(null);
+setFareQuoteError("");
+setRideMessage("");
+  setRouteDistance(null);
+  setRouteDuration(null);
+  setCompletedRide(null);
+
+  previousActiveRideId.current = null;
+  return;
+}
+
 // ------------------------------------
 // CHECK FOR NEWLY COMPLETED RIDE
 // ------------------------------------
@@ -727,115 +770,17 @@ if (latestCompletedRide) {
     latestCompletedRide.id;
 
   if (
-    lastCompletedRideId.current !==
-    latestCompletedId
-  ) {
-    setCompletedRide(latestCompletedRide);
-
-    lastCompletedRideId.current =
-      latestCompletedId;
-
-    // Clear old booking message
-    setRideMessage("");
-  }
-}
-
-// ------------------------------------
-// Detect RIDER_ACCEPTED status change
-// ------------------------------------
-
-if (
-  previousRideStatus.current.rideId === ride.id &&
-  previousRideStatus.current.status === "DRIVER_ASSIGNED" &&
-  ride.status === "RIDER_ACCEPTED"
+  lastCompletedRideId.current !== latestCompletedId
 ) {
-  showStudentRideAcceptedNotification(ride);
+  setCompletedRide(latestCompletedRide);
+  setShowBookingForm(false);
+
+  lastCompletedRideId.current = latestCompletedId;
+  setRideMessage("");
+}
 }
 
-// Remember current ride + status
-previousRideStatus.current = {
-  rideId: ride.id,
-  status: ride.status,
- };
 
-
-
-    // ------------------------------------
-    // FIRST TIME INITIALIZATION
-    // ------------------------------------
-
-    if (lastCompletedRideId.current === null) {
-
-      if (latestCompletedRide) {
-        lastCompletedRideId.current =
-          latestCompletedRide.id;
-      }
-
-      if (ride) {
-        previousActiveRideId.current =
-          ride.id;
-      }
-    }
-
-    // ------------------------------------
-    // ACTIVE RIDE EXISTS
-    // ------------------------------------
-
-    if (ride) {
-
-      setActiveRide(ride);
-
-      // Remember current active ride
-      previousActiveRideId.current =
-        ride.id;
-
-      // Update rider location
-      if (
-        ride.rider_lat !== null &&
-        ride.rider_lat !== undefined &&
-        ride.rider_lng !== null &&
-        ride.rider_lng !== undefined
-      ) {
-
-        setRiderLocation([
-          Number(ride.rider_lat),
-          Number(ride.rider_lng),
-        ]);
-
-      } else {
-
-        setRiderLocation(null);
-
-      }
-
-      return;
-    }
-
-    
-
-    // ------------------------------------
-    // CHECK FOR NEWLY COMPLETED RIDE
-    // ------------------------------------
-
-    if (latestCompletedRide) {
-
-      const latestCompletedId =
-        latestCompletedRide.id;
-
-      // A new completed ride is detected
-      if (
-        lastCompletedRideId.current !==
-        latestCompletedId
-      ) {
-
-        setCompletedRide(
-          latestCompletedRide
-        );
-
-        lastCompletedRideId.current =
-          latestCompletedId;
-      }
-    }
 
   } catch (error) {
 
@@ -1029,61 +974,135 @@ useEffect(() => {
   // MAP LOCATION SELECTION
   // ------------------------------------
 
-  const handleMapClick = (location) => {
-    // First click = pickup
-    if (!pickup) {
-      setPickup(location);
-      setDestination(null);
-      return;
-    }
-
-    // Second click = destination
-    if (!destination) {
-      setDestination(location);
-      return;
-    }
-
-    // Third click starts a new selection
+ const handleMapClick = (location) => {
+  // First click: manually select pickup.
+  if (!pickup || (pickup && destination)) {
+    setManualPickup(true);
+    setManualDestination(false);
     setPickup(location);
     setDestination(null);
-  };
+    setFareQuote(null);
+    setFareQuoteError("");
+    return;
+  }
 
-  const handleReset = () => {
-    setPickup(null);
-    setDestination(null);
-  };
+  // Second click: manually select destination.
+  setManualDestination(true);
+  setDestination(location);
+  setFareQuote(null);
+  setFareQuoteError("");
+};
 
-  // ------------------------------------
-  // DISTANCE & FARE
-  // ------------------------------------
+ // ------------------------------------
+// DISTANCE & FARE QUOTE
+// ------------------------------------
 
- let distance = null;
-let fare = null;
-
-if (pickup && destination) {
-
-  distance =
-    routeDistance !== null
+const distance =
+  pickup && destination
+    ? routeDistance !== null
       ? routeDistance
-      : calculateDistance(
-          pickup,
-          destination
+      : calculateDistance(pickup, destination)
+    : null;
+
+const fare = fareQuote?.fare ?? null;
+
+useEffect(() => {
+  // The quote API requires saved location IDs.
+ const pickupId = manualPickup ? null : selectedPickup?.id;
+const destinationId = manualDestination
+  ? null
+  : selectedDestination?.id;
+
+  if (
+    !pickupId ||
+    !destinationId ||
+    String(pickupId) === String(destinationId) ||
+    !pickup ||
+    !destination
+  ) {
+    setFareQuote(null);
+    setFareQuoteError("");
+    setFareQuoteLoading(false);
+    return;
+  }
+
+  let cancelled = false;
+
+  const fetchFareQuote = async () => {
+    setFareQuote(null);
+    setFareQuoteError("");
+    setFareQuoteLoading(true);
+
+    try {
+      const params = new URLSearchParams({
+        pickup_location_id: String(pickupId),
+        destination_location_id: String(destinationId),
+        passenger_count: String(passengerCount),
+      });
+
+      const response = await fetch(
+        `http://localhost:5001/api/fares/quote?${params.toString()}`
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Unable to get fare quote."
         );
+      }
 
-  const baseFare = 10;
-  const perKm = 5;
-
-  fare = baseFare + distance * perKm;
+      // A missing configured fare is not a booking error.
+// Keep the quote response so the UI can show "To be discussed".
+if (!cancelled) {
+  setFareQuote(data);
+  setFareQuoteError("");
 }
+    } catch (error) {
+      if (!cancelled) {
+        console.error("Fare quote error:", error);
+        setFareQuote(null);
+        setFareQuoteError(error.message);
+      }
+    } finally {
+      if (!cancelled) {
+        setFareQuoteLoading(false);
+      }
+    }
+  };
+
+  fetchFareQuote();
+
+  return () => {
+    cancelled = true;
+  };
+}, [
+  selectedPickup?.id,
+  selectedDestination?.id,
+  pickup,
+  destination,
+    manualPickup,
+  manualDestination,
+    passengerCount,
+]);
 
   // ------------------------------------
   // REQUEST RIDE
   // ------------------------------------
 
   const handleRequestRide = async () => {
-    const user = JSON.parse(
-      localStorage.getItem("campusrideUser")
+
+  // Prevent accidental booking after ride completion
+  if (completedRide) {
+    setRideMessage(
+      "Your previous ride is completed. Click 'Book Another Ride' to start a new booking."
     );
+    return;
+  }
+
+  const user = JSON.parse(
+    localStorage.getItem("campusrideUser")
+  );
 
     if (!user) {
       setRideMessage("Please login first.");
@@ -1096,6 +1115,33 @@ if (pickup && destination) {
       );
       return;
     }
+
+   if (
+  !pickup ||
+  !destination ||
+  !Number.isFinite(Number(distance)) ||
+  Number(distance) <= 0
+) {
+  setRideMessage(
+    "Please select valid pickup and destination locations and wait for the route calculation."
+  );
+  return;
+}
+
+const hasConfiguredFare =
+  fareQuote?.fare_available === true &&
+  fareQuote?.fare != null &&
+  Number.isFinite(Number(fareQuote.fare)) &&
+  Number(fareQuote.fare) > 0;
+
+const fareToSend = hasConfiguredFare
+  ? Number(fareQuote.fare)
+  : 0;
+
+const fareStatusToSend = hasConfiguredFare
+  ? "QUOTED"
+  : "TO_BE_DISCUSSED";
+
 
     try {
       setLoading(true);
@@ -1120,10 +1166,19 @@ if (pickup && destination) {
             destinationLat: destination[0],
             destinationLng: destination[1],
 
-            distance: Number(
-              distance.toFixed(2)
- ),
-            fare: Math.ceil(fare),
+          distance: Number(distance.toFixed(2)),
+fare: fareToSend,
+fareStatus: fareStatusToSend,
+
+passengerCount: Number(passengerCount),
+
+pickupLocationId: fareStatusToSend === "QUOTED"
+  ? Number(selectedPickup.id)
+  : null,
+
+destinationLocationId: fareStatusToSend === "QUOTED"
+  ? Number(selectedDestination.id)
+  : null,
           }),
         }
       );
@@ -1156,6 +1211,20 @@ if (pickup && destination) {
       setLoading(false);
     }
   };
+
+  const handleReset = () => {
+  setPickup(null);
+  setDestination(null);
+  setManualPickup(false);
+  setManualDestination(false);
+  setFareQuote(null);
+  setFareQuoteError("");
+  setFareQuoteLoading(false);
+  setRouteCoordinates([]);
+  setRouteDistance(null);
+  setRouteDuration(null);
+  setRideMessage("");
+};
 
   // ------------------------------------
   // UI
@@ -1222,7 +1291,7 @@ if (pickup && destination) {
       playStudentNotificationSound();
 
       alert(
-        "🔔 Student notifications enabled!"
+        "🔔 notifications enabled!"
       );
 
     }
@@ -1239,7 +1308,7 @@ if (pickup && destination) {
       {/* -------------------------------- */}
 
       {activeRide && (
-        <div
+  <div className="active-ride-status-card"
           style={{
             marginBottom: "12px",
             padding: "12px 15px",
@@ -1265,6 +1334,21 @@ if (pickup && destination) {
            })()}
          </div>
 
+
+          {activeRide.status === "RIDER_ACCEPTED" &&
+            activeRide.start_pin && (
+              <div className="ride-pin-card">
+                <strong>🔐 Your Ride Verification PIN</strong>
+                <div className="ride-pin-number">
+                  {activeRide.start_pin}
+                </div>
+                <p>
+                  Share this code with your rider to start the ride.
+                </p>
+              </div>
+            )}
+
+
           {activeRide.status === "REQUESTED" ? (
           <div style={{ marginTop: "5px" }}>
             🔎 Searching for an available rider...
@@ -1283,15 +1367,11 @@ if (pickup && destination) {
       )}
 
       {/* Map */}
-      <MapContainer
-        center={campusCenter}
-        zoom={15}
-        style={{
-          height: "450px",
-          width: "100%",
-          borderRadius: "12px",
-        }}
-      >
+     <MapContainer
+  center={campusCenter}
+  zoom={15}
+  className="campusride-map"
+>
 
         <TileLayer
           attribution="&copy; OpenStreetMap contributors"
@@ -1420,8 +1500,8 @@ if (pickup && destination) {
      
      </MapContainer>
     
-     {activeRide && riderLocation && (
-  <div
+    {activeRide && riderLocation && (
+  <div className="live-rider-card"
     style={{
       marginBottom: "15px",
       padding: "18px",
@@ -1430,7 +1510,7 @@ if (pickup && destination) {
       boxShadow: "0 4px 15px rgba(0,0,0,0.12)",
       border: "1px solid #e5e7eb",
     }}
-  >
+    >
     <div
       style={{
         display: "flex",
@@ -1446,7 +1526,7 @@ if (pickup && destination) {
           }}
         >
          {activeRide.status === "ONGOING"
-    ? "🚕 Your ride is in progress"
+    ? "🏍️ Your ride is in progress"
     : "🏍️ Your rider is on the way"}
         </h3>
 
@@ -1585,7 +1665,7 @@ if (pickup && destination) {
         marginBottom: "18px",
       }}
     >
-      Thank you for riding with CampusRide! 🏍️
+      Thank you for riding with 4Mi Rides! 🏍️
     </p>
 
     <div
@@ -1598,7 +1678,7 @@ if (pickup && destination) {
     >
 
       <div>
-        🚕 Ride:{" "}
+        🏍️ Ride:{" "}
         <strong>
           #{completedRide.id}
         </strong>
@@ -1628,7 +1708,7 @@ if (pickup && destination) {
 </div>
 
 <div>
-  💰 Fare:{" "}
+  💰 Fare:{" REFER FARE CHART "}
   <strong>
     ₹{Number(completedRide.estimated_fare).toFixed(2)}
   </strong>
@@ -1637,7 +1717,11 @@ if (pickup && destination) {
     </div>
 
     <button
-      onClick={() => setCompletedRide(null)}
+    onClick={() => {
+  setCompletedRide(null);
+  setShowBookingForm(false);
+  setRideMessage("");
+}}
       style={{
         padding: "11px 20px",
         border: "none",
@@ -1649,19 +1733,104 @@ if (pickup && destination) {
       📋 View My Rides
     </button>
 
+    <button
+  onClick={() => {
+  setCompletedRide(null);
+  setActiveRide(null);
+  setRiderLocation(null);
+  setRideMessage("");
+
+  handleReset();
+
+  setManualPickup(false);
+setManualDestination(false);
+
+  setShowBookingForm(true);
+}}
+  style={{
+    marginTop: "12px",
+    marginLeft: "10px",
+    padding: "10px 18px",
+    border: "none",
+    borderRadius: "8px",
+    background: "#ff6b35",
+    color: "white",
+    cursor: "pointer",
+    fontWeight: "bold",
+  }}
+>
+  🏍️ Book Another Ride
+</button>
+
   </div>
+)}
+
+{!showBookingForm && !completedRide && !activeRide && (
+  <button
+    onClick={() => {
+      handleReset();
+      setRideMessage("");
+      setShowBookingForm(true);
+    }}
+    style={{
+      margin: "12px 0",
+      padding: "12px 18px",
+      border: "none",
+      borderRadius: "8px",
+      background: "#ff6b35",
+      color: "white",
+      cursor: "pointer",
+      fontWeight: "bold",
+    }}
+  >
+    🏍️ Book Another Ride
+  </button>
 )}
 
       {/* -------------------------------- */}
       {/* RIDE INFORMATION */}
       {/* -------------------------------- */}
 
-      {pickup && destination && !activeRide && (
-       <div className="ride-summary">
-
+     {showBookingForm &&
+  pickup &&
+  destination &&
+  !activeRide &&
+  !completedRide && (
+    <div className="ride-summary">
           <h3>
-            🚕 Ride Details
+           🏍️  Ride Details
           </h3>
+
+  <div className="ride-detail">
+  <label htmlFor="passenger-count">
+    👥 Number of Persons
+  </label>
+
+  <select
+    id="passenger-count"
+    value={passengerCount}
+    onChange={(event) => {
+      setPassengerCount(Number(event.target.value));
+      setFareQuote(null);
+      setFareQuoteError("");
+    }}
+    style={{
+  width: "150px",
+  minWidth: "150px",
+  padding: "10px 12px",
+  borderRadius: "8px",
+  border: "1px solid #d1d5db",
+  backgroundColor: "#fff",
+  color: "#1f2937",
+  fontSize: "15px",
+  fontWeight: "600",
+  cursor: "pointer",
+}}
+  >
+    <option value={1}>1 Person</option>
+    <option value={2}>2 Persons</option>
+  </select>
+</div>
 
           <div className="ride-detail">
   <span>📍 Pickup</span>
@@ -1714,24 +1883,73 @@ if (pickup && destination) {
   </div>
 )}
 
-          <div className="ride-detail fare">
-            <span>
-              💰 Estimated Fare
-            </span>
+       <div className="ride-detail fare">
+  <span>💰 Estimated Fare</span>
 
-            <strong>
-              ₹{Math.ceil(fare)}
-            </strong>
-          </div>
+  <strong>
+    {fareQuoteLoading
+      ? "Calculating..."
+      : fareQuote?.fare_available === true &&
+        fareQuote?.fare != null &&
+        Number(fareQuote.fare) > 0
+      ? `₹${Number(fareQuote.fare).toFixed(2)}`
+      : "To be discussed"}
+  </strong>
+</div>
+
+{!fareQuoteLoading &&
+  fareQuote?.fare_available !== true && (
+    <p className="message">
+      Fare needs to be discussed for this route.
+    </p>
+  )}
+
+{fareQuote?.fare_available === true && (
+  <p>
+    <small>Fare status: QUOTED</small>
+  </p>
+)}
+
+{!manualPickup &&
+  !manualDestination &&
+  fareQuoteError && (
+    <p className="message" role="alert">
+      {fareQuoteError}
+    </p>
+  )}
+
+{(manualPickup || manualDestination) && pickup && destination && (
+  <p>
+    <small>Fare status: TO_BE_DISCUSSED</small>
+  </p>
+)}
+
+{fareQuoteError && (
+  <p className="message" role="alert">
+    {fareQuoteError}
+  </p>
+)}
+
+{fareQuote && (
+  <p>
+    <small>
+      Fare status: {fareQuote.fare_status}
+    </small>
+  </p>
+)}
 
           <button
             className="request-ride-button"
             onClick={handleRequestRide}
-            disabled={
-                       loading ||
-                  routeLoading ||
-                !routeDistance
-                  }
+         disabled={
+  loading ||
+  routeLoading ||
+  fareQuoteLoading ||
+  !pickup ||
+  !destination ||
+  !Number.isFinite(Number(distance)) ||
+  Number(distance) <= 0
+}
           >
             {loading
             ? "⏳ Requesting..."

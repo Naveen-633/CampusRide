@@ -1,0 +1,134 @@
+
+.location-search-wrapper {
+  position: relative;
+  width: 100%;
+  margin-bottom: 22px;
+  text-align: left;
+  z-index: 5;
+}
+
+.location-search-label {
+  display: block;
+  margin-bottom: 12px;
+  text-align: center;
+  font-weight: 600;
+  color: #34425b;
+}
+
+.location-search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 54px;
+  padding: 0 16px;
+  box-sizing: border-box;
+  background: #fff;
+  border: 1.5px solid #d8dfeb;
+  border-radius: 13px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.location-search-active {
+  border-color: #ff713d;
+  box-shadow: 0 0 0 3px rgba(255, 113, 61, 0.12);
+}
+
+.location-search-icon {
+  flex-shrink: 0;
+  font-size: 17px;
+}
+
+.location-search-box input {
+  flex: 1;
+  min-width: 0;
+  height: 50px;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #192338;
+  font-size: 15px;
+}
+
+.location-search-box input::placeholder {
+  color: #7b8495;
+}
+
+.location-search-arrow {
+  color: #58647a;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.location-clear-button {
+  border: none;
+  background: transparent;
+  color: #697386;
+  font-size: 23px;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.location-search-results {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #e0e5ee;
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(20, 30, 50, 0.16);
+  z-index: 1000;
+}
+
+.location-search-option {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 13px 16px;
+  border: none;
+  background: #fff;
+  color: #273248;
+  text-align: left;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.location-search-option:hover {
+  background: #fff3ed;
+}
+
+.location-option-selected {
+  background: #fff7f2;
+  color: #e85f2a;
+  font-weight: 600;
+}
+
+.location-option-check {
+  margin-left: auto;
+}
+
+.location-no-results {
+  padding: 18px;
+  text-align: center;
+  color: #7b8495;
+  font-size: 14px;
+}
+
+.location-search-wrapper:focus-within {
+  z-index: 20;
+}
+
+@media (max-width: 600px) {
+  .location-search-results {
+    max-height: 220px;
+  }
+
+  .location-search-option {
+    padding: 14px 12px;
+  }
+}
