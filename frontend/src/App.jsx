@@ -264,8 +264,21 @@ useEffect(() => {
 
 
 
-  const [page, setPage] = useState("login");
-  // Forgot password form
+const [page, setPage] = useState(() => {
+  try {
+    const savedUser = JSON.parse(
+      localStorage.getItem("campusrideUser")
+    );
+
+    if (!savedUser) return "dashboard";
+    if (savedUser.role === "ADMIN") return "admin";
+    if (savedUser.role === "RIDER") return "rider";
+
+    return "dashboard";
+  } catch {
+    return "dashboard";
+  }
+});  // Forgot password form
   const [forgotData, setForgotData] = useState({
   phone: "",
   securityAnswer: "",
@@ -286,7 +299,15 @@ const [fareChartError, setFareChartError] = useState("");
   const [destinationLocation, setDestinationLocation] = useState("");
 
   const [rideMessage, setRideMessage] = useState("");
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [rideLoading, setRideLoading] = useState(false);
+
+
+const [feedbackType, setFeedbackType] = useState("Suggestion");
+const [feedbackMessage, setFeedbackMessage] = useState("");
+const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+const [feedbackNotice, setFeedbackNotice] = useState("");
+const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
   // Login form
   const [loginData, setLoginData] = useState({
@@ -625,6 +646,70 @@ if (page === "dashboard") {
     localStorage.getItem("campusrideUser")
   );
 
+
+const handleFeedbackSubmit = async (event) => {
+  event.preventDefault();
+  setFeedbackNotice("");
+
+  const message = feedbackMessage.trim();
+
+  if (message.length < 5 || message.length > 2000) {
+    setFeedbackNotice(
+      "Please enter a message between 5 and 2000 characters."
+    );
+    return;
+  }
+
+  if (!user?.id) {
+    setFeedbackNotice("Please log in again before submitting.");
+    return;
+  }
+
+  try {
+    setFeedbackSubmitting(true);
+
+    const response = await fetch(
+      "http://localhost:5001/api/feedback",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          feedbackType,
+          message,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      setFeedbackNotice(
+        data.message || "Unable to submit feedback."
+      );
+      return;
+    }
+
+    setFeedbackMessage("");
+    setFeedbackType("Suggestion");
+    setFeedbackNotice(
+      "Thank you! Your feedback has been submitted. ❤️"
+    );
+    setShowFeedbackModal(false);
+
+  } catch (error) {
+    console.error("Feedback submission error:", error);
+    setFeedbackNotice(
+      "Unable to connect to the server. Please try again."
+    );
+  } finally {
+    setFeedbackSubmitting(false);
+  }
+};
+
+
   const calculateDistance = (point1, point2) => {
   const R = 6371;
 
@@ -686,10 +771,10 @@ const handleFindRide = async () => {
     localStorage.getItem("campusrideUser")
   );
 
-  if (!user) {
-    setRideMessage("Please login first.");
-    return;
-  }
+if (!user) {
+  setShowAuthPrompt(true);
+  return;
+}
 
   const distance = calculateDistance(
     pickup,
@@ -799,17 +884,29 @@ const studentFareChart = Object.values(
             <p>Your ride. Your way.</p>
           </div>
         </div>
-
-        <button
-          className="logout-button"
-          onClick={() => {
-            localStorage.removeItem("campusrideUser");
-            setPage("login");
-            setMessage("");
-          }}
-        >
-          Logout
-        </button>
+{user ? (
+  <button
+    className="logout-button"
+    onClick={() => {
+      localStorage.removeItem("campusrideUser");
+      setPage("dashboard");
+      setMessage("");
+      setRideMessage("");
+    }}
+  >
+    Logout
+  </button>
+) : (
+  <button
+    className="logout-button"
+    onClick={() => {
+      setPage("login");
+      setMessage("");
+    }}
+  >
+    Login / Register
+  </button>
+)}
 
       </header>
 
@@ -828,6 +925,104 @@ const studentFareChart = Object.values(
           </p>
 
         </section>
+
+
+{/* 4Mi FLOATING FEEDBACK BUTTON */}
+<button
+  type="button"
+  className="floating-feedback-button"
+  onClick={() => {
+    setFeedbackNotice("");
+    setShowFeedbackModal(true);
+  }}
+  aria-label="Open feedback and suggestions"
+  title="Feedback & Suggestions"
+>
+  <span className="feedback-float-icon">💬</span>
+  <span className="feedback-float-label">Feedback</span>
+</button>
+
+{/* 4Mi FEEDBACK POPUP */}
+{showFeedbackModal && (
+  <div
+    className="feedback-modal-overlay"
+    onClick={() => setShowFeedbackModal(false)}
+  >
+    <section
+      className="feedback-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="feedback-modal-title"
+      onClick={(event) => event.stopPropagation()}
+    >
+      <div className="feedback-modal-header">
+        <div>
+          <h3 id="feedback-modal-title">💬 Share Your Thoughts</h3>
+          <p>Help us make 4Mi Rides better!</p>
+        </div>
+
+        <button
+          type="button"
+          className="feedback-modal-close"
+          onClick={() => setShowFeedbackModal(false)}
+          aria-label="Close feedback popup"
+        >
+          ✕
+        </button>
+      </div>
+
+      <form onSubmit={handleFeedbackSubmit}>
+        <label htmlFor="feedbackType">
+          What would you like to share?
+        </label>
+
+        <select
+          id="feedbackType"
+          value={feedbackType}
+          onChange={(event) => setFeedbackType(event.target.value)}
+          disabled={feedbackSubmitting}
+        >
+          <option value="Feedback">⭐ Feedback</option>
+          <option value="Suggestion">💡 Suggestion</option>
+          <option value="Complaint">⚠️ Complaint</option>
+        </select>
+
+        <label htmlFor="feedbackMessage">Your message</label>
+
+        <textarea
+          id="feedbackMessage"
+          value={feedbackMessage}
+          onChange={(event) => setFeedbackMessage(event.target.value)}
+          placeholder="Write your message here..."
+          rows={4}
+          minLength={5}
+          maxLength={2000}
+          required
+          disabled={feedbackSubmitting}
+        />
+
+        {feedbackNotice && (
+          <p
+            className="feedback-notice"
+            role="status"
+          >
+            {feedbackNotice}
+          </p>
+        )}
+
+        <button
+          type="submit"
+          className="feedback-submit-button"
+          disabled={feedbackSubmitting}
+        >
+          {feedbackSubmitting ? "Submitting..." : "Send Message ❤️"}
+        </button>
+      </form>
+    </section>
+  </div>
+)}
+
+
 
 {/* 4Mi Fare Information */}
 
@@ -1034,6 +1229,45 @@ const studentFareChart = Object.values(
   </p>
 )}
 
+{showAuthPrompt && (
+  <div className="auth-prompt">
+    <h3>Login to book your ride</h3>
+
+    <p>
+      Explore 4Mi Rides freely. To request a ride,
+      please log in to your account or create a new one.
+    </p>
+
+    <div className="auth-prompt-actions">
+      <button
+        onClick={() => {
+          setShowAuthPrompt(false);
+          setPage("login");
+          setMessage("");
+        }}
+      >
+        Login
+      </button>
+
+      <button
+        onClick={() => {
+          setShowAuthPrompt(false);
+          setPage("register");
+          setMessage("");
+        }}
+      >
+        Create Account
+      </button>
+
+      <button
+        onClick={() => setShowAuthPrompt(false)}
+      >
+        Continue Exploring
+      </button>
+    </div>
+  </div>
+)}
+
           <CampusMap
   selectedPickup={
     campusLocations.find(
@@ -1164,9 +1398,9 @@ const studentFareChart = Object.values(
       </details>
 
       <details>
-        <summary>How can I track my rider?</summary>
+        <summary>How can I track my Captain?</summary>
         <p>
-          After your rider accepts the booking, you can
+          After your captain accepts the booking, you can
           follow their live location on the map.
         </p>
       </details>
@@ -1406,6 +1640,40 @@ if (page === "forgot") {
     Forgot Password?
   </span>
 </p>
+
+
+{/* STUDENT TEAM DISCLAIMER */}
+<div className="login-disclaimer">
+  <div className="disclaimer-heading">
+    <span className="disclaimer-icon">🧡</span>
+    <h4>A Small Request from Our Team</h4>
+  </div>
+
+  <p>
+    We’re students just like you, working hard to make your
+    campus rides easier while balancing our studies.
+  </p>
+
+<p>
+  Every ride takes someone’s time, effort, and fuel.
+  So, we kindly request you to book only genuine rides
+  and avoid{" "}
+  <span className="fake-booking-warning">
+    fake bookings
+  </span>.
+</p>
+
+  <p>
+    Your understanding and support mean a lot to us.
+    Let’s help each other and make 4Mi Rides a better
+    experience for everyone.
+  </p>
+
+  <div className="disclaimer-thankyou">
+    Thank you for supporting a student-built initiative! 🧡
+  </div>
+</div>
+
 
         </div>
       </div>

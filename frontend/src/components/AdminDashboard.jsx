@@ -11,6 +11,14 @@ function AdminDashboard() {
   const [riders, setRiders] = useState([]);
   const [totalStudents, setTotalStudents] = useState(null);
 
+
+const [feedbackItems, setFeedbackItems] = useState([]);
+const [feedbackLoading, setFeedbackLoading] = useState(false);
+const [feedbackError, setFeedbackError] = useState("");
+const [showFeedbackDetails, setShowFeedbackDetails] = useState(true);
+const [updatingFeedbackId, setUpdatingFeedbackId] = useState(null);
+
+
   // ------------------------------------
 // 4Mi DYNAMIC FARE MANAGEMENT
 // ------------------------------------
@@ -51,6 +59,10 @@ const [fareForm, setFareForm] = useState({
 const [fareLoading, setFareLoading] = useState(false);
 const [fareSaving, setFareSaving] = useState(false);
 const [fareMessage, setFareMessage] = useState("");
+
+// Expand/collapse admin management sections
+const [showLocationDetails, setShowLocationDetails] = useState(false);
+const [showFareDetails, setShowFareDetails] = useState(false);
 
 
   const [showAddRider, setShowAddRider] = useState(false);
@@ -263,6 +275,72 @@ const showAdminNotification = (ride) => {
     }
 
 };
+
+
+const fetchFeedback = async () => {
+  try {
+    setFeedbackLoading(true);
+    setFeedbackError("");
+
+    const response = await fetch(
+      "http://localhost:5001/api/admin/feedback"
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.message || "Unable to load feedback."
+      );
+    }
+
+    setFeedbackItems(data.feedback || []);
+  } catch (error) {
+    console.error("Fetch feedback error:", error);
+    setFeedbackError(
+      error.message || "Unable to load feedback."
+    );
+  } finally {
+    setFeedbackLoading(false);
+  }
+};
+
+
+const updateFeedbackStatus = async (feedbackId, status) => {
+  try {
+    setUpdatingFeedbackId(feedbackId);
+    setFeedbackError("");
+
+    const response = await fetch(
+      `http://localhost:5001/api/admin/feedback/${feedbackId}/status`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.message || "Unable to update feedback."
+      );
+    }
+
+    await fetchFeedback();
+  } catch (error) {
+    console.error("Update feedback status error:", error);
+    setFeedbackError(
+      error.message || "Unable to update feedback status."
+    );
+  } finally {
+    setUpdatingFeedbackId(null);
+  }
+};
+
 
 
 const fetchStudentCount = async () => {
@@ -908,9 +986,9 @@ const handleRemoveFareGroup = async (group) => {
         if (stopped) {
             return;
         }
-
-        await fetchRiders();
-        await fetchStudentCount();
+await fetchRiders();
+await fetchStudentCount();
+await fetchFeedback();
 
         if (stopped) {
             return;
@@ -1479,9 +1557,29 @@ const activeRideStatuses = [
     }
   }}
   >
-  {notificationEnabled
+    {notificationEnabled
     ? "🔔 Notifications ON"
     : "🔕 Enable Notifications"}
+ </button>
+
+ {/* LOGOUT BUTTON */}
+ <button
+   type="button"
+   className="logout-button"
+   onClick={() => {
+     const confirmLogout = window.confirm(
+       "Are you sure you want to logout?"
+     );
+
+     if (!confirmLogout) {
+       return;
+     }
+
+     localStorage.removeItem("campusrideUser");
+     window.location.reload();
+   }}
+ >
+   Logout
  </button>
 
   </div>
@@ -1575,11 +1673,141 @@ const activeRideStatuses = [
 
 
 {/* ================================= */}
-{/* 4Mi CAMPUS LOCATION MANAGEMENT */}
+{/* 4Mi STUDENT FEEDBACK INBOX */}
 {/* ================================= */}
 
+<section className="admin-riders feedback-admin-section">
+  <div className="admin-riders-header feedback-admin-header">
+    <div>
+      <h2>💬 Student Feedback & Complaints</h2>
+      <p>
+        Review student feedback, suggestions, and complaints.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      className="details-toggle-button"
+      onClick={() => setShowFeedbackDetails((previous) => !previous)}
+    >
+      {showFeedbackDetails
+        ? "▲ Hide Details"
+        : "▼ View Details"}
+    </button>
+  </div>
+
+  {showFeedbackDetails && (
+    <div className="feedback-admin-content">
+      <div className="feedback-admin-toolbar">
+        <span>
+          Total submissions: <strong>{feedbackItems.length}</strong>
+        </span>
+
+        <span>
+          New:{" "}
+          <strong>
+            {feedbackItems.filter((item) => item.status === "NEW").length}
+          </strong>
+        </span>
+
+        <button
+          type="button"
+          onClick={fetchFeedback}
+          disabled={feedbackLoading}
+        >
+          {feedbackLoading ? "Refreshing..." : "🔄 Refresh"}
+        </button>
+      </div>
+
+      {feedbackError && (
+        <p className="feedback-error" role="alert">
+          {feedbackError}
+        </p>
+      )}
+
+      {feedbackLoading && feedbackItems.length === 0 ? (
+        <p>Loading feedback...</p>
+      ) : feedbackItems.length === 0 ? (
+        <p className="feedback-empty">
+          No submissions yet. Student feedback will appear here.
+        </p>
+      ) : (
+        <div className="feedback-admin-list">
+          {feedbackItems.map((item) => (
+            <article className="feedback-admin-card" key={item.id}>
+              <div className="feedback-card-top">
+                <span className={`feedback-type-badge feedback-type-${item.feedback_type.toLowerCase()}`}>
+                  {item.feedback_type === "Complaint"
+                    ? "⚠️ Complaint"
+                    : item.feedback_type === "Suggestion"
+                    ? "💡 Suggestion"
+                    : "⭐ Feedback"}
+                </span>
+
+                <span className={`feedback-status-badge feedback-status-${item.status.toLowerCase()}`}>
+                  {item.status}
+                </span>
+              </div>
+
+              <p className="feedback-student-name">
+                {item.full_name || "Former / unavailable user"}
+                {item.student_id ? ` · ${item.student_id}` : ""}
+              </p>
+
+              {item.mobile && (
+                <p className="feedback-student-mobile">
+                  📞 {item.mobile}
+                </p>
+              )}
+
+              <p className="feedback-message-text">
+                {item.message}
+              </p>
+
+              <small className="feedback-date">
+                Submitted:{" "}
+                {new Date(item.created_at).toLocaleString()}
+              </small>
+
+              <div className="feedback-admin-actions">
+                {item.status === "NEW" && (
+                  <button
+                    type="button"
+                    disabled={updatingFeedbackId === item.id}
+                    onClick={() => updateFeedbackStatus(item.id, "REVIEWED")}
+                  >
+                    Mark Reviewed
+                  </button>
+                )}
+
+                {item.status !== "RESOLVED" && (
+                  <button
+                    type="button"
+                    className="feedback-resolve-button"
+                    disabled={updatingFeedbackId === item.id}
+                    onClick={() => updateFeedbackStatus(item.id, "RESOLVED")}
+                  >
+                    {updatingFeedbackId === item.id
+                      ? "Updating..."
+                      : "Mark Resolved"}
+                  </button>
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </div>
+  )}
+</section>
+
+
+
+{/* ================================= */}
+{/* 4Mi CAMPUS LOCATION MANAGEMENT */}
+{/* ================================= */}
 <div
-  className="admin-riders"
+  className="admin-riders admin-management-card"
   style={{ marginBottom: "24px" }}
 >
   <div className="admin-riders-header">
@@ -1597,7 +1825,17 @@ const activeRideStatuses = [
     >
       🔄 Refresh Locations
     </button>
+    <button
+  type="button"
+  className="details-toggle-button"
+  onClick={() => setShowLocationDetails(prev => !prev)}
+>
+  {showLocationDetails ? "Hide Details ▲" : "View Details ▼"}
+</button>
   </div>
+
+  {showLocationDetails && (
+  <div className="management-details">
 
   {/* Create category */}
   <form
@@ -1883,12 +2121,8 @@ const activeRideStatuses = [
     {fareLocations.length === 0 ? (
       <p>No active locations found.</p>
     ) : (
-      <table
-        style={{
-          width: "100%",
-          borderCollapse: "collapse",
-        }}
-      >
+      <div className="admin-management-table-wrapper">
+  <table className="admin-management-table">
         <thead>
           <tr>
             <th style={{ padding: "10px", textAlign: "left" }}>
@@ -1934,18 +2168,20 @@ const activeRideStatuses = [
                 </td>
             </tr>
           ))}
-        </tbody>
-      </table>
-    )}
+                 </tbody>
+            </table>
+    </div>
+  )}
   </div>
+  </div>
+)}
 </div>
 
 {/* ================================= */}
 {/* 4Mi DYNAMIC FARE MANAGEMENT */}
 {/* ================================= */}
-
 <div
-  className="admin-riders"
+  className="admin-riders admin-management-card"
   style={{ marginBottom: "24px" }}
 >
   <div className="admin-riders-header">
@@ -1963,7 +2199,16 @@ const activeRideStatuses = [
     >
       {fareLoading ? "Loading..." : "🔄 Refresh Fares"}
     </button>
+    <button
+  type="button"
+  className="details-toggle-button"
+  onClick={() => setShowFareDetails(prev => !prev)}
+>
+  {showFareDetails ? "Hide Details ▲" : "View Details ▼"}
+</button>
   </div>
+  {showFareDetails && (
+  <div className="management-details">
 
   <form
     onSubmit={handleFareSubmit}
@@ -2097,8 +2342,8 @@ const activeRideStatuses = [
       <p>No fare routes found.</p>
     ) : (
       
-<table style={{ width: "100%", borderCollapse: "collapse" }}>
-  <thead>
+<div className="admin-management-table-wrapper">
+  <table className="admin-management-table">  <thead>
     <tr>
       <th style={{ padding: "10px", textAlign: "left" }}>Pickup</th>
       <th style={{ padding: "10px", textAlign: "left" }}>Destination</th>
@@ -2175,12 +2420,20 @@ const activeRideStatuses = [
         </tr>
       );
     })}
-  </tbody>
-</table>
-
-    )}
+   </tbody>
+            </table>
+    </div>
+  )}
   </div>
+  </div>
+)}
 </div>
+
+{/* ============================== */}
+{/* RIDER MANAGEMENT */}
+{/* ============================== */}
+{/* ================================= */}
+{/* RIDER MANAGEMENT */}
 
 
 
@@ -3417,6 +3670,35 @@ const activeRideStatuses = [
   
 
 )}
+
+
+{/* ADMIN CANCEL / STOP RIDE */}
+{[
+  "REQUESTED",
+  "DRIVER_ASSIGNED",
+  "RIDER_ACCEPTED",
+  "RIDE_STARTED",
+  "IN_PROGRESS"
+].includes(ride.status) && (
+  <div className="admin-actions">
+    <button
+      type="button"
+      className="terminate-ride-button"
+      onClick={() => {
+        const confirmed = window.confirm(
+          `Are you sure you want to cancel/stop Ride #${ride.id}? This action cannot be undone.`
+        );
+
+        if (confirmed) {
+          updateRideStatus(ride.id, "cancel");
+        }
+      }}
+    >
+      🛑 Cancel / Stop Ride
+    </button>
+  </div>
+)}
+
 
   </div>
 )}

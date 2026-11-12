@@ -78,7 +78,7 @@ const playRideNotificationSound = () => {
   } catch (error) {
 
     console.error(
-      "Rider notification sound error:",
+      "Captain notification sound error:",
       error
     );
 
@@ -480,7 +480,7 @@ const showRideAssignmentNotification =
       <div className="rider-dashboard">
 
         <h2>
-          Loading Rider Dashboard...
+          Loading Captain Dashboard...
         </h2>
 
       </div>
@@ -498,7 +498,7 @@ const showRideAssignmentNotification =
       <div className="rider-dashboard">
 
         <h2>
-          Rider profile not found.
+          Captain profile not found.
         </h2>
 
       </div>
@@ -687,7 +687,7 @@ const rejectRide = async (rideId) => {
     setAvailable(true);
 
     alert(
-      "Ride rejected. Looking for another rider."
+      "Ride rejected. Looking for another Captain."
     );
 
   } catch (error) {
@@ -872,7 +872,7 @@ if (!/^\d{4}$/.test(pin)) {
       <div className="rider-header">
 
         <h1>
-          🏍️ 4Mi Rides Rider
+          🏍️ 4Mi Rides Captain
         </h1>
 
         <p>
@@ -901,7 +901,7 @@ if (!/^\d{4}$/.test(pin)) {
       playRideNotificationSound();
 
       alert(
-        "🔔 Rider notifications enabled!"
+        "🔔 Captain notifications enabled!"
       );
 
     }
@@ -913,6 +913,24 @@ if (!/^\d{4}$/.test(pin)) {
     : "🔕 Enable Notifications"}
 </button>
 
+      <button
+        className="logout-button"
+        onClick={() => {
+          const confirmLogout = window.confirm(
+            "Are you sure you want to logout?"
+          );
+
+          if (!confirmLogout) {
+            return;
+          }
+
+          localStorage.removeItem("campusrideUser");
+          window.location.reload();
+        }}
+      >
+        Logout
+      </button>
+
       </div>
 
 
@@ -922,7 +940,7 @@ if (!/^\d{4}$/.test(pin)) {
       <div className="rider-profile-card">
 
         <h2>
-          👤 Rider Profile
+          👤 Captain Profile
         </h2>
 
         <p>
@@ -954,7 +972,7 @@ if (!/^\d{4}$/.test(pin)) {
       <div className="rider-availability-card">
 
         <h2>
-          🟢 Rider Availability
+          🟢 Captain Availability
         </h2>
 
         <div className="availability-status">
@@ -1092,7 +1110,29 @@ if (!/^\d{4}$/.test(pin)) {
               📞 {activeRide.mobile}
             </small>
           )}
+
+          {activeRide.mobile && (
+  <a
+    href={`tel:${activeRide.mobile}`}
+    className="call-passenger-button"
+  >
+    📞 Call Passenger
+  </a>
+)}
         </div>
+
+
+{/* NUMBER OF PASSENGERS */}
+<div className="current-ride-passengers">
+  <span>👥 Number of Passengers</span>
+  <strong>
+    {activeRide?.number_of_persons ??
+      activeRide?.passenger_count ??
+      activeRide?.persons ??
+      1}
+  </strong>
+</div>
+
 
         
 

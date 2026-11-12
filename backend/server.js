@@ -1701,6 +1701,101 @@ app.patch("/api/admin/rides/:id/reject", async (req, res) => {
     }
 });
 
+
+/* ------------------------------------
+   4Mi Admin - Cancel / Terminate Ride
+------------------------------------ */
+
+app.patch("/api/admin/rides/:id/cancel", async (req, res) => {
+    const client = await pool.connect();
+
+    try {
+        const rideId = Number(req.params.id);
+
+        if (!Number.isSafeInteger(rideId) || rideId <= 0) {
+            return res.status(400).json({
+                message: "Invalid ride ID."
+            });
+        }
+
+        await client.query("BEGIN");
+
+        // Lock the ride so concurrent updates cannot conflict.
+        const rideResult = await client.query(
+            `SELECT id, rider_id, status
+             FROM rides
+             WHERE id = $1
+             FOR UPDATE`,
+            [rideId]
+        );
+
+        if (rideResult.rows.length === 0) {
+            await client.query("ROLLBACK");
+
+            return res.status(404).json({
+                message: "Ride not found."
+            });
+        }
+
+        const ride = rideResult.rows[0];
+
+        const activeStatuses = [
+            "REQUESTED",
+            "DRIVER_ASSIGNED",
+            "ACCEPTED",
+            "RIDER_ACCEPTED",
+            "ONGOING"
+        ];
+
+        if (!activeStatuses.includes(ride.status)) {
+            await client.query("ROLLBACK");
+
+            return res.status(400).json({
+                message:
+                    `This ride cannot be terminated because its status is ${ride.status}.`
+            });
+        }
+
+        // Cancel the ride, including an ongoing ride.
+        const updateResult = await client.query(
+            `UPDATE rides
+             SET status = 'CANCELLED'
+             WHERE id = $1
+             RETURNING id, status`,
+            [rideId]
+        );
+
+        // Release the assigned Captain for future rides.
+        if (ride.rider_id) {
+            await client.query(
+                `UPDATE riders
+                 SET is_available = TRUE
+                 WHERE id = $1`,
+                [ride.rider_id]
+            );
+        }
+
+        await client.query("COMMIT");
+
+        return res.json({
+            message: "Ride cancelled by admin successfully.",
+            ride: updateResult.rows[0]
+        });
+
+    } catch (error) {
+        await client.query("ROLLBACK");
+
+        console.error("Admin cancel ride error:", error);
+
+        return res.status(500).json({
+            message: "Unable to cancel the ride."
+        });
+    } finally {
+        client.release();
+    }
+});
+
+
 // ------------------------------------
 // Get Online / Available Riders Count
 // ------------------------------------
@@ -3557,6 +3652,156 @@ app.post("/api/admin/riders", async (req, res) => {
 
         client.release();
 
+    }
+});
+
+
+/* =========================================
+   4Mi FEEDBACK, SUGGESTIONS & COMPLAINTS
+========================================= */
+
+// Student submits feedback
+app.post("/api/feedback", async (req, res) => {
+    try {
+        const userId = Number(req.body.userId);
+        const feedbackType = req.body.feedbackType;
+        const message =
+            typeof req.body.message === "string"
+                ? req.body.message.trim()
+                : "";
+
+        if (!Number.isInteger(userId) || userId <= 0) {
+            return res.status(400).json({
+                message: "Please log in before submitting feedback."
+            });
+        }
+
+        if (!["Feedback", "Suggestion", "Complaint"].includes(feedbackType)) {
+            return res.status(400).json({
+                message: "Please select a valid feedback type."
+            });
+        }
+
+        if (message.length < 5 || message.length > 2000) {
+            return res.status(400).json({
+                message: "Your message must be between 5 and 2000 characters."
+            });
+        }
+
+        // Confirm the user exists before saving the submission.
+        const userResult = await pool.query(
+            "SELECT id FROM users WHERE id = $1",
+            [userId]
+        );
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({
+                message: "User account not found. Please log in again."
+            });
+        }
+
+        const result = await pool.query(
+            `INSERT INTO feedback (user_id, feedback_type, message)
+             VALUES ($1, $2, $3)
+             RETURNING id, feedback_type, message, status, created_at`,
+            [userId, feedbackType, message]
+        );
+
+        return res.status(201).json({
+            message: "Thank you! Your feedback has been submitted.",
+            feedback: result.rows[0]
+        });
+
+    } catch (error) {
+        console.error("Submit feedback error:", error);
+
+        return res.status(500).json({
+            message: "Unable to submit feedback right now."
+        });
+    }
+});
+
+
+// Admin views all feedback submissions
+app.get("/api/admin/feedback", async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT
+                f.id,
+                f.user_id,
+                f.feedback_type,
+                f.message,
+                f.status,
+                f.created_at,
+                u.full_name,
+                u.student_id,
+                u.mobile
+             FROM feedback f
+             LEFT JOIN users u ON u.id = f.user_id
+             ORDER BY
+                CASE f.status
+                    WHEN 'NEW' THEN 0
+                    WHEN 'REVIEWED' THEN 1
+                    ELSE 2
+                END,
+                f.created_at DESC`
+        );
+
+        return res.json({ feedback: result.rows });
+
+    } catch (error) {
+        console.error("Get admin feedback error:", error);
+
+        return res.status(500).json({
+            message: "Unable to load feedback submissions."
+        });
+    }
+});
+
+
+// Admin marks feedback as reviewed or resolved
+app.patch("/api/admin/feedback/:id/status", async (req, res) => {
+    try {
+        const feedbackId = Number(req.params.id);
+        const { status } = req.body;
+
+        if (!Number.isInteger(feedbackId) || feedbackId <= 0) {
+            return res.status(400).json({
+                message: "Invalid feedback ID."
+            });
+        }
+
+        if (!["REVIEWED", "RESOLVED"].includes(status)) {
+            return res.status(400).json({
+                message: "Choose REVIEWED or RESOLVED."
+            });
+        }
+
+        const result = await pool.query(
+            `UPDATE feedback
+             SET status = $1
+             WHERE id = $2
+             RETURNING id, status`,
+            [status, feedbackId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                message: "Feedback submission not found."
+            });
+        }
+
+        return res.json({
+            message: "Feedback status updated.",
+            feedback: result.rows[0]
+        });
+
+    } catch (error) {
+        console.error("Update feedback status error:", error);
+
+        return res.status(500).json({
+            message: "Unable to update feedback status."
+        });
     }
 });
 

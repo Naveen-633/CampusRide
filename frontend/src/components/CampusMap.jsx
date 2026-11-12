@@ -176,7 +176,7 @@ function SmoothRiderMarker({ position, icon }) {
       icon={icon}
     >
       <Popup>
-        🏍️ <strong>Rider Live Location</strong>
+        🏍️ <strong>Captain Live Location</strong>
       </Popup>
     </Marker>
   );
@@ -187,19 +187,19 @@ function getRideStatus(status) {
     case "REQUESTED":
       return {
         icon: "🔎",
-        text: "Finding a rider",
+        text: "Finding a Captain",
       };
 
     case "DRIVER_ASSIGNED":
       return {
         icon: "🏍️",
-        text: "Rider assigned",
+        text: "Captain assigned",
       };
 
     case "RIDER_ACCEPTED":
       return {
         icon: "✅",
-        text: "Rider accepted your ride",
+        text: "Captain accepted your ride",
       };
 
     case "ONGOING":
@@ -609,7 +609,7 @@ const showStudentRideAcceptedNotification = (ride) => {
       "🏍️ Ride Accepted",
       {
         body:
-          `Your rider has accepted Ride #${ride.id}.`,
+          `Your captain has accepted Ride #${ride.id}.`,
       }
     );
 
@@ -785,7 +785,7 @@ if (latestCompletedRide) {
   } catch (error) {
 
     console.error(
-      "Error fetching rider location:",
+      "Error fetching captain location:",
       error
     );
 
@@ -855,7 +855,7 @@ if (latestCompletedRide) {
       const response = await fetch(url);
 
       if (!response.ok) {
-        throw new Error("Rider route request failed.");
+        throw new Error("captain route request failed.");
       }
 
       const data = await response.json();
@@ -865,7 +865,7 @@ if (latestCompletedRide) {
         !data.routes ||
         data.routes.length === 0
       ) {
-        throw new Error("No rider road route found.");
+        throw new Error("No captain road route found.");
       }
 
       const route = data.routes[0];
@@ -887,7 +887,7 @@ if (latestCompletedRide) {
 
     } catch (error) {
       console.error(
-        "Rider OSRM routing error:",
+        "captain OSRM routing error:",
         error
       );
 
@@ -1343,7 +1343,7 @@ destinationLocationId: fareStatusToSend === "QUOTED"
                   {activeRide.start_pin}
                 </div>
                 <p>
-                  Share this code with your rider to start the ride.
+                  Share this code with your captain to start the ride.
                 </p>
               </div>
             )}
@@ -1351,15 +1351,15 @@ destinationLocationId: fareStatusToSend === "QUOTED"
 
           {activeRide.status === "REQUESTED" ? (
           <div style={{ marginTop: "5px" }}>
-            🔎 Searching for an available rider...
+            🔎 Searching for an available captain...
           </div>
             ) : riderLocation ? (
           <div style={{ marginTop: "5px" }}>
-            🟢 Rider location is updating live
+            🟢 Captain location is updating live
           </div>
             ) : (
           <div style={{ marginTop: "5px" }}>
-            🟡 Waiting for rider location...
+            🟡 Waiting for captain location...
           </div>
           )}
 
@@ -1527,7 +1527,7 @@ destinationLocationId: fareStatusToSend === "QUOTED"
         >
          {activeRide.status === "ONGOING"
     ? "🏍️ Your ride is in progress"
-    : "🏍️ Your rider is on the way"}
+    : "🏍️ Your captain is on the way"}
         </h3>
 
         <p
@@ -1537,7 +1537,7 @@ destinationLocationId: fareStatusToSend === "QUOTED"
           }}
         >
            {activeRide.status === "ONGOING"
-    ? "🟢 Rider is taking you to your destination"
+    ? "🟢 Captain is taking you to your destination"
     : "🟢 Live location updating"}
         </p>
       </div>
@@ -1573,7 +1573,7 @@ destinationLocationId: fareStatusToSend === "QUOTED"
       }}
     >
      <div>
-  👤 Rider:{" "}
+  👤 Captain:{" "}
   <strong>
     {activeRide.rider_name || "CampusRide Rider"}
   </strong>
@@ -1893,14 +1893,14 @@ setManualDestination(false);
         fareQuote?.fare != null &&
         Number(fareQuote.fare) > 0
       ? `₹${Number(fareQuote.fare).toFixed(2)}`
-      : "To be discussed"}
+      : "Refer Fare Chart"}
   </strong>
 </div>
 
 {!fareQuoteLoading &&
   fareQuote?.fare_available !== true && (
     <p className="message">
-      Fare needs to be discussed for this route.
+      Fare based on the fare chart.
     </p>
   )}
 
@@ -1920,7 +1920,7 @@ setManualDestination(false);
 
 {(manualPickup || manualDestination) && pickup && destination && (
   <p>
-    <small>Fare status: TO_BE_DISCUSSED</small>
+    <small>Fare status: To be discussed with captain</small>
   </p>
 )}
 
@@ -1963,6 +1963,21 @@ setManualDestination(false);
               {rideMessage}
             </p>
           )}
+
+          <div className="fake-booking-disclaimer">
+             <div className="disclaimer-heading">
+    <span className="disclaimer-icon">🧡</span>
+    <h4>A Small Request from Our Team</h4>
+  </div>
+  <p>
+    Every ride takes someone’s time, effort, and fuel.
+    So, we kindly request you to book only genuine rides
+    and avoid{" "}
+    <span className="fake-booking-warning">
+      fake bookings
+    </span>.
+  </p>
+  </div>
 
           <button
             className="reset-button"

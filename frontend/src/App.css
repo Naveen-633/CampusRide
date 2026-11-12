@@ -168,7 +168,11 @@ select {
 
 .location-input {
   margin-bottom: 20px;
+  position: relative;
+  z-index: 500;
+  overflow: visible;
 }
+
 
 .location-input label {
   display: block;
@@ -1710,22 +1714,21 @@ select {
    CAMPUSRIDE MAP
 ========================= */
 
+
 .campusride-map {
   width: 100%;
-
   height: 450px;
-
   border-radius: 18px;
-
   overflow: hidden;
-
   margin-top: 18px;
-
   border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 25px rgba(15, 23, 42, 0.10);
 
-  box-shadow:
-    0 8px 25px rgba(15, 23, 42, 0.10);
+  /* Keep the map below location dropdowns */
+  position: relative;
+  z-index: 0;
 }
+
 
 
 /* =========================
@@ -2082,8 +2085,12 @@ select {
    ========================================================= */
 
 .location-input {
-  margin-bottom: 18px;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 500;
+  overflow: visible;
 }
+
 
 .location-input label {
   display: block;
@@ -3604,4 +3611,1011 @@ select {
   margin: 0;
   font-size: 12px;
   color: #4b5563;
+}
+
+.auth-prompt {
+  margin: 18px 0;
+  padding: 22px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 14px;
+  text-align: center;
+}
+
+.auth-prompt h3 {
+  margin: 0 0 10px;
+  color: #9a3412;
+}
+
+.auth-prompt p {
+  color: #57534e;
+  line-height: 1.6;
+}
+
+.auth-prompt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.auth-prompt-actions button {
+  padding: 11px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  background: #ff713e;
+  color: white;
+}
+
+.auth-prompt-actions button:last-child {
+  background: #e5e7eb;
+  color: #1f2937;
+}
+
+
+/* ==========================================
+   4Mi RIDES — ADMIN MANAGEMENT SECTIONS
+   ========================================== */
+
+.admin-management-card {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 24px 0;
+  padding: 30px;
+  background: #ffffff;
+  border: 1px solid #e8edf5;
+  border-radius: 22px;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+  color: #172033;
+  overflow: hidden;
+}
+
+.admin-management-card *,
+.admin-management-card *::before,
+.admin-management-card *::after {
+  box-sizing: border-box;
+}
+
+.admin-management-card h2,
+.admin-management-card h3 {
+  color: #172033;
+  font-weight: 750;
+  letter-spacing: -0.4px;
+}
+
+.admin-management-card h2 {
+  font-size: 26px;
+  margin: 0 0 8px;
+}
+
+.admin-management-card h3 {
+  font-size: 20px;
+  margin: 28px 0 18px;
+}
+
+.admin-management-card p {
+  color: #647084;
+  line-height: 1.6;
+}
+
+/* Forms and input fields */
+
+.admin-management-card input,
+.admin-management-card select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 11px 13px;
+  background: #f8fafc;
+  color: #172033;
+  border: 1px solid #d8e0ec;
+  border-radius: 9px;
+  outline: none;
+  font: inherit;
+  font-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.admin-management-card input::placeholder {
+  color: #8a95a6;
+}
+
+.admin-management-card input:focus,
+.admin-management-card select:focus {
+  background: #ffffff;
+  border-color: #536dfe;
+  box-shadow: 0 0 0 3px rgba(83, 109, 254, 0.13);
+}
+
+.admin-management-card label {
+  display: block;
+  margin-bottom: 8px;
+  color: #344054;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+/* Buttons */
+
+.admin-management-card button {
+  min-height: 36px;
+  padding: 9px 14px;
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+
+.admin-management-card button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+}
+
+.admin-management-card button:active {
+  transform: translateY(0);
+}
+
+/* Main action buttons */
+
+.admin-management-card .primary-button {
+  background: #172033;
+  color: #ffffff;
+}
+
+.admin-management-card .primary-button:hover {
+  background: #293957;
+}
+
+/* Edit buttons */
+
+.admin-management-card .edit-button {
+  background: #e8efff;
+  color: #3155bd;
+}
+
+.admin-management-card .edit-button:hover {
+  background: #d8e4ff;
+}
+
+/* Remove buttons */
+
+.admin-management-card .remove-button {
+  background: #fff0f0;
+  color: #c62828;
+}
+
+.admin-management-card .remove-button:hover {
+  background: #ffe0e0;
+}
+
+/* Deactivate buttons */
+
+.admin-management-card .deactivate-button {
+  background: #fff5dc;
+  color: #946200;
+}
+
+/* Category list */
+
+.location-category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 18px 0 28px;
+}
+
+.location-category-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 15px 12px;
+  border-bottom: 1px solid #e9edf4;
+  transition: background 0.2s ease;
+}
+
+.location-category-item:hover {
+  background: #f8faff;
+}
+
+.location-category-name {
+  color: #253047;
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.location-category-actions,
+.fare-action-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+/* Location and fare forms */
+
+.admin-management-form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: end;
+  gap: 16px;
+  margin: 22px 0 30px;
+}
+
+.admin-management-form .form-field {
+  min-width: 0;
+}
+
+.admin-management-form .form-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Tables */
+
+.admin-management-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 16px;
+  border: 1px solid #e8edf5;
+  border-radius: 12px;
+}
+
+.admin-management-table {
+  width: 100%;
+  min-width: 650px;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #ffffff;
+}
+
+.admin-management-table th {
+  padding: 15px 16px;
+  background: #f3f6fb;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 750;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid #e0e7f0;
+}
+
+.admin-management-table td {
+  padding: 15px 16px;
+  color: #344054;
+  font-size: 14px;
+  text-align: left;
+  border-bottom: 1px solid #edf0f5;
+  vertical-align: middle;
+}
+
+.admin-management-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.admin-management-table tbody tr:hover {
+  background: #f8faff;
+}
+
+.admin-management-table td button {
+  white-space: nowrap;
+}
+
+/* Fare status */
+
+.fare-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
+  border-radius: 20px;
+  background: #e9f9ef;
+  color: #167344;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.fare-status.inactive {
+  background: #fff3e8;
+  color: #a44c0b;
+}
+
+/* Refresh buttons */
+
+.admin-management-card .refresh-button {
+  min-height: 42px;
+  padding: 11px 18px;
+  background: #172033;
+  color: #ffffff;
+  border-radius: 10px;
+}
+
+/* Responsive layout */
+
+@media (max-width: 900px) {
+  .admin-management-card {
+    padding: 22px;
+  }
+
+  .admin-management-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .admin-management-card {
+    padding: 16px;
+    margin: 16px 0;
+    border-radius: 15px;
+  }
+
+  .admin-management-card h2 {
+    font-size: 21px;
+  }
+
+  .admin-management-card h3 {
+    font-size: 18px;
+  }
+
+  .admin-management-form {
+    grid-template-columns: 1fr;
+    gap: 13px;
+  }
+
+  .admin-management-form .form-actions {
+    flex-wrap: wrap;
+  }
+
+  .location-category-item {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .location-category-actions {
+    justify-content: flex-start;
+  }
+
+  .admin-management-card button {
+    min-height: 38px;
+  }
+}
+
+/* 4Mi admin section expand/collapse controls */
+.details-toggle-button {
+  background: #172033;
+  color: #ffffff;
+  border: none;
+  border-radius: 9px;
+  padding: 10px 15px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.details-toggle-button:hover {
+  background: #30415f;
+  transform: translateY(-1px);
+}
+
+.management-details {
+  animation: managementDetailsIn 0.2s ease;
+}
+
+@keyframes managementDetailsIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* 4Mi Rides - Student Team Disclaimer */
+.login-disclaimer {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 24px;
+  padding: 18px;
+  background: linear-gradient(135deg, #fffaf5, #fff3e8);
+  border: 1px solid #fed7aa;
+  border-radius: 14px;
+  text-align: left;
+  color: #475569;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.disclaimer-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 12px;
+}
+
+.disclaimer-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.disclaimer-heading h4 {
+  margin: 0;
+  color: #c2410c;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.login-disclaimer p {
+  margin: 10px 0;
+  font-size: 13px;
+}
+
+.disclaimer-thankyou {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #fed7aa;
+  color: #c2410c;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .login-disclaimer {
+    margin-top: 20px;
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .disclaimer-heading h4 {
+    font-size: 14px;
+  }
+
+  .login-disclaimer p,
+  .disclaimer-thankyou {
+    font-size: 12px;
+  }
+}
+
+/* Highlight fake bookings warning */
+.fake-booking-warning {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+/* Fake Booking Disclaimer */
+.fake-booking-disclaimer {
+  margin-top: 14px;
+  margin-bottom: 12px;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, #fff8f1, #fff1e8);
+  border: 1px solid #ffd3b5;
+  border-left: 4px solid #ff7138;
+  border-radius: 12px;
+  color: #59483f;
+  font-size: 13px;
+  line-height: 1.7;
+  text-align: left;
+  box-shadow: 0 3px 10px rgba(255, 113, 56, 0.06);
+}
+
+/* Disclaimer heading */
+.fake-booking-disclaimer .disclaimer-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.fake-booking-disclaimer .disclaimer-icon {
+  font-size: 20px;
+}
+
+.fake-booking-disclaimer h4 {
+  margin: 0;
+  color: #c4511c;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* Disclaimer paragraphs */
+.fake-booking-disclaimer p {
+  margin: 0 0 10px;
+}
+
+.fake-booking-disclaimer p:last-child {
+  margin-bottom: 0;
+}
+
+/* Highlight fake bookings in red */
+.fake-booking-warning {
+  color: #dc2626;
+  font-weight: 800;
+  background: #fee2e2;
+  padding: 2px 5px;
+  border-radius: 4px;
+}
+
+/* Mobile-friendly layout */
+@media (max-width: 600px) {
+  .fake-booking-disclaimer {
+    padding: 12px;
+    font-size: 12px;
+    line-height: 1.65;
+  }
+
+  .fake-booking-disclaimer h4 {
+    font-size: 14px;
+  }
+}
+
+/* Cancel/terminate ride from admin*/
+.terminate-ride-button {
+  width: 100%;
+  padding: 12px 16px;
+  margin-top: 12px;
+  border: none;
+  border-radius: 10px;
+  background: #dc2626;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.terminate-ride-button:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+}
+
+.terminate-ride-button:focus-visible {
+  outline: 3px solid #fca5a5;
+  outline-offset: 3px;
+}
+
+
+
+/* =====================================
+   4Mi STUDENT FEEDBACK FORM
+===================================== */
+
+.student-feedback-section {
+  margin: 24px 0;
+  padding: 22px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+}
+
+.student-feedback-heading h3 {
+  margin: 0 0 8px;
+  color: #1e293b;
+}
+
+.student-feedback-heading p {
+  margin: 0 0 18px;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.student-feedback-section form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.student-feedback-section label {
+  margin-top: 4px;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.student-feedback-section select,
+.student-feedback-section textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  background: #fff;
+  color: #1e293b;
+  font: inherit;
+}
+
+.student-feedback-section textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.student-feedback-section select:focus,
+.student-feedback-section textarea:focus {
+  outline: 2px solid #fdba74;
+  border-color: #f97316;
+}
+
+.student-feedback-section form > button {
+  align-self: flex-start;
+  padding: 11px 18px;
+  border: none;
+  border-radius: 9px;
+  background: #f97316;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.student-feedback-section form > button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.feedback-notice {
+  margin: 4px 0 0;
+  color: #166534;
+  font-size: 14px;
+}
+
+
+/* =====================================
+   4Mi ADMIN FEEDBACK INBOX
+===================================== */
+
+.feedback-admin-section {
+  margin-bottom: 24px;
+}
+
+.feedback-admin-header {
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.feedback-admin-content {
+  margin-top: 18px;
+}
+
+.feedback-admin-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 18px;
+  color: #475569;
+  font-size: 14px;
+}
+
+.feedback-admin-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.feedback-admin-card {
+  min-width: 0;
+  padding: 17px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+  overflow-wrap: anywhere;
+}
+
+.feedback-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.feedback-type-badge,
+.feedback-status-badge {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.feedback-type-feedback {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.feedback-type-suggestion {
+  background: #f3e8ff;
+  color: #7e22ce;
+}
+
+.feedback-type-complaint {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.feedback-status-new {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.feedback-status-reviewed {
+  background: #e0f2fe;
+  color: #075985;
+}
+
+.feedback-status-resolved {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.feedback-student-name {
+  margin: 0 0 5px;
+  color: #1e293b;
+  font-weight: 700;
+}
+
+.feedback-student-mobile {
+  margin: 0 0 12px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.feedback-message-text {
+  margin: 12px 0;
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.feedback-date {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.feedback-admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.feedback-admin-actions button {
+  padding: 9px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #334155;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.feedback-admin-actions .feedback-resolve-button {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.feedback-admin-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.feedback-empty {
+  padding: 20px;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #64748b;
+  text-align: center;
+}
+
+.feedback-error {
+  color: #b91c1c;
+  font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  .student-feedback-section {
+    padding: 16px;
+  }
+
+  .feedback-admin-list {
+    grid-template-columns: 1fr;
+  }
+
+  .feedback-admin-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+
+
+/* 4Mi Floating Feedback Button */
+.floating-feedback-button {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 17px;
+  border: none;
+  border-radius: 50px;
+  background: #f97316;
+  color: #fff;
+  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.22);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.floating-feedback-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.28);
+}
+
+.feedback-float-icon {
+  font-size: 21px;
+  line-height: 1;
+}
+
+.feedback-float-label {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Popup Overlay */
+.feedback-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(15, 23, 42, 0.48);
+}
+
+/* Compact Feedback Popup */
+.feedback-modal {
+  width: 100%;
+  max-width: 440px;
+  max-height: calc(100vh - 36px);
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 22px;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 18px 60px rgba(15, 23, 42, 0.25);
+}
+
+.feedback-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.feedback-modal-header h3 {
+  margin: 0 0 6px;
+  color: #1e293b;
+  font-size: 19px;
+}
+
+.feedback-modal-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.feedback-modal-close {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.feedback-modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.feedback-modal label {
+  margin-top: 4px;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.feedback-modal select,
+.feedback-modal textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  background: #fff;
+  color: #1e293b;
+  font: inherit;
+  font-size: 14px;
+}
+
+.feedback-modal textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.feedback-modal select:focus,
+.feedback-modal textarea:focus {
+  outline: 2px solid #fdba74;
+  border-color: #f97316;
+}
+
+.feedback-modal .feedback-submit-button {
+  margin-top: 6px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 9px;
+  background: #f97316;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.feedback-modal .feedback-submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.feedback-modal .feedback-notice {
+  margin: 4px 0;
+  color: #166534;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+  .floating-feedback-button {
+    right: 14px;
+    bottom: 16px;
+    padding: 12px;
+  }
+
+  .feedback-float-label {
+    display: none;
+  }
+
+  .feedback-modal {
+    padding: 18px;
+  }
 }
