@@ -1,3 +1,4 @@
+import API_BASE_URL from "../api";
 import { useEffect, useRef, useState } from "react";
 
 function getRideStatus(status) {
@@ -5,7 +6,7 @@ function getRideStatus(status) {
     case "REQUESTED":
       return {
         icon: "🔎",
-        text: "Finding a rider",
+        text: "Finding a captain",
       };
 
     case "DRIVER_ASSIGNED":
@@ -78,7 +79,7 @@ function RideHistory() {
     }
 
     const response = await fetch(
-      `http://localhost:5001/api/rides/${rideId}/cancel`,
+      `${API_BASE_URL}/api/rides/${rideId}/cancel`,
       {
         method: "PATCH",
         headers: {
@@ -137,7 +138,7 @@ useEffect(() => {
       }
 
       const response = await fetch(
-  `http://localhost:5001/api/rides/user/${user.id}`,
+  `${API_BASE_URL}/api/rides/user/${user.id}`,
   {
     method: "GET",
     cache: "no-store",

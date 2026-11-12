@@ -1,3 +1,4 @@
+import API_BASE_URL from "../api";
 import {
   MapContainer,
   TileLayer,
@@ -627,7 +628,7 @@ const showStudentRideAcceptedNotification = (ride) => {
 
   try {
     const response = await fetch(
-      `http://localhost:5001/api/rides/user/${user.id}`
+      `${API_BASE_URL}/api/rides/user/${user.id}`
     );
 
     if (!response.ok) {
@@ -1041,7 +1042,7 @@ const destinationId = manualDestination
       });
 
       const response = await fetch(
-        `http://localhost:5001/api/fares/quote?${params.toString()}`
+        `${API_BASE_URL}/api/fares/quote?${params.toString()}`
       );
 
       const data = await response.json();
@@ -1147,7 +1148,7 @@ const fareStatusToSend = hasConfiguredFare
       setLoading(true);
 
       const response = await fetch(
-        "http://localhost:5001/api/rides",
+       `${API_BASE_URL}/api/rides`,
         {
           method: "POST",
           headers: {

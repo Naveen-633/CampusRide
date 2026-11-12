@@ -1,3 +1,4 @@
+import API_BASE_URL from "../api";
 import {useEffect,useState,useRef} from "react";
 import "./RiderDashboard.css";
 import RiderRideMap from "./RiderRideMap";
@@ -126,7 +127,7 @@ const showRideAssignmentNotification =
         }
 
         const response = await fetch(
-          `http://localhost:5001/api/riders/${user.id}`
+          `${API_BASE_URL}/api/riders/${user.id}`
         );
 
         const data = await response.json();
@@ -174,7 +175,7 @@ const showRideAssignmentNotification =
     try {
 
       const response = await fetch(
-        `http://localhost:5001/api/riders/${rider.id}/rides`
+        `${API_BASE_URL}/api/riders/${rider.id}/rides`
       );
 
       const data = await response.json();
@@ -326,7 +327,7 @@ const showRideAssignmentNotification =
         try {
 
           const response = await fetch(
-            `http://localhost:5001/api/riders/${rider.user_id}/location`,
+            `${API_BASE_URL}/api/riders/${rider.user_id}/location`,
             {
               method: "PATCH",
 
@@ -429,7 +430,7 @@ const showRideAssignmentNotification =
   try {
 
       const response = await fetch(
-        `http://localhost:5001/api/riders/${rider.user_id}/availability`,
+        `${API_BASE_URL}/api/riders/${rider.user_id}/availability`,
         {
           method: "PATCH",
 
@@ -517,7 +518,7 @@ const acceptRide = async (rideId) => {
     // Accept the ride
     // ------------------------------------
     const response = await fetch(
-      `http://localhost:5001/api/rides/${rideId}/accept`,
+      `${API_BASE_URL}/api/rides/${rideId}/accept`,
       {
         method: "PATCH",
 
@@ -547,7 +548,7 @@ const acceptRide = async (rideId) => {
     // Make rider unavailable
     // ------------------------------------
     const availabilityResponse = await fetch(
-      `http://localhost:5001/api/riders/${rider.user_id}/availability`,
+      `${API_BASE_URL}/api/riders/${rider.user_id}/availability`,
       {
         method: "PATCH",
 
@@ -582,7 +583,7 @@ const acceptRide = async (rideId) => {
     // Refresh assigned rides
     // ------------------------------------
     const ridesResponse = await fetch(
-      `http://localhost:5001/api/riders/${rider.id}/rides`
+      `${API_BASE_URL}/api/riders/${rider.id}/rides`
     );
 
     const ridesData =
@@ -635,7 +636,7 @@ const rejectRide = async (rideId) => {
     // Reject the ride
     // ------------------------------------
     const response = await fetch(
-      `http://localhost:5001/api/rides/${rideId}/reject`,
+      `${API_BASE_URL}/api/rides/${rideId}/reject`,
       {
         method: "PATCH",
 
@@ -667,7 +668,7 @@ const rejectRide = async (rideId) => {
     // ------------------------------------
     const ridesResponse =
       await fetch(
-        `http://localhost:5001/api/riders/${rider.id}/rides`
+        `${API_BASE_URL}/api/riders/${rider.id}/rides`
       );
 
     const ridesData =
@@ -716,7 +717,7 @@ if (!/^\d{4}$/.test(pin)) {
 }
     try {
       const response = await fetch(
-        `http://localhost:5001/api/rides/${rideId}/start`,
+        `${API_BASE_URL}/api/rides/${rideId}/start`,
         {
           method: "PATCH",
           headers: {
@@ -746,7 +747,7 @@ if (!/^\d{4}$/.test(pin)) {
 
       // Refresh assigned rides
       const ridesResponse = await fetch(
-        `http://localhost:5001/api/riders/${rider.id}/rides`
+        `${API_BASE_URL}/api/riders/${rider.id}/rides`
       );
 
       const ridesData =
@@ -777,7 +778,7 @@ if (!/^\d{4}$/.test(pin)) {
   const completeRide = async (rideId) => {
     try {
       const response = await fetch(
-        `http://localhost:5001/api/rides/${rideId}/complete`,
+        `${API_BASE_URL}/api/rides/${rideId}/complete`,
         {
           method: "PATCH",
           headers: {
@@ -802,7 +803,7 @@ if (!/^\d{4}$/.test(pin)) {
       // Rider becomes available again
       const availabilityResponse =
         await fetch(
-          `http://localhost:5001/api/riders/${rider.user_id}/availability`,
+          `${API_BASE_URL}/api/riders/${rider.user_id}/availability`,
           {
             method: "PATCH",
             headers: {
@@ -825,7 +826,7 @@ if (!/^\d{4}$/.test(pin)) {
 
       // Refresh assigned rides
       const ridesResponse = await fetch(
-        `http://localhost:5001/api/riders/${rider.id}/rides`
+        `${API_BASE_URL}/api/riders/${rider.id}/rides`
       );
 
       const ridesData =

@@ -1,3 +1,4 @@
+import API_BASE_URL from "../api";
 import { useEffect, useState } from "react";
 
 import {
@@ -192,7 +193,7 @@ function AdminRiderMap({ selectedRide }) {
     try {
 
       const response = await fetch(
-        "http://localhost:5001/api/admin/riders"
+        `${API_BASE_URL}/api/admin/riders`
       );
 
       const data = await response.json();

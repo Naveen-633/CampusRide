@@ -1,3 +1,4 @@
+import API_BASE_URL from "./api";
 import { useState, useEffect } from "react";
 import "./App.css";
 import CampusMap from "./components/CampusMap";
@@ -153,7 +154,7 @@ useEffect(() => {
       setLocationsError("");
 
       const response = await fetch(
-        "http://localhost:5001/api/locations"
+      `${API_BASE_URL}/api/locations`
       );
 
       const data = await response.json();
@@ -193,7 +194,7 @@ useEffect(() => {
 
     try {
       const response = await fetch(
-        "http://localhost:5001/api/admin/fare-routes"
+       `${API_BASE_URL}/api/admin/fare-routes`
       );
 
       const data = await response.json();
@@ -232,7 +233,7 @@ useEffect(() => {
   const fetchAvailableRiders = async () => {
     try {
       const response = await fetch(
-        "http://localhost:5001/api/riders/available-count",
+       `${API_BASE_URL}/api/riders/available-count`,
         { cache: "no-store" }
       );
 
@@ -376,7 +377,7 @@ const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
   try {
     const response = await fetch(
-      "http://localhost:5001/api/auth/forgot-password",
+      `${API_BASE_URL}/api/auth/forgot-password`,
       {
         method: "POST",
         headers: {
@@ -439,7 +440,7 @@ const handleResetPassword = async (event) => {
 
   try {
     const response = await fetch(
-      "http://localhost:5001/api/auth/reset-password",
+     `${API_BASE_URL}/api/auth/reset-password`,
       {
         method: "POST",
         headers: {
@@ -506,7 +507,7 @@ const handleResetPassword = async (event) => {
 
   try {
     const response = await fetch(
-      "http://localhost:5001/api/auth/login",
+      `${API_BASE_URL}/api/auth/login`,
       {
         method: "POST",
         headers: {
@@ -589,7 +590,7 @@ const handleResetPassword = async (event) => {
 
   try {
     const response = await fetch(
-      "http://localhost:5001/api/auth/register",
+      `${API_BASE_URL}/api/auth/register`,
       {
         method: "POST",
         headers: {
@@ -669,7 +670,7 @@ const handleFeedbackSubmit = async (event) => {
     setFeedbackSubmitting(true);
 
     const response = await fetch(
-      "http://localhost:5001/api/feedback",
+      `${API_BASE_URL}/api/feedback`,
       {
         method: "POST",
         headers: {
@@ -792,7 +793,7 @@ if (!user) {
     setRideLoading(true);
 
     const response = await fetch(
-      "http://localhost:5001/api/rides",
+      `${API_BASE_URL}/api/rides`,
       {
         method: "POST",
         headers: {

@@ -1,3 +1,4 @@
+import API_BASE_URL from "../api";
 import { useEffect, useState, useRef } from "react";
 import AdminRiderMap from "./AdminRiderMap";
 
@@ -201,7 +202,7 @@ const showAdminNotification = (ride) => {
         setError("");
 
         const response = await fetch(
-            "http://localhost:5001/api/admin/rides"
+            `${API_BASE_URL}/api/admin/rides`
         );
 
         const data = await response.json();
@@ -283,7 +284,7 @@ const fetchFeedback = async () => {
     setFeedbackError("");
 
     const response = await fetch(
-      "http://localhost:5001/api/admin/feedback"
+      `${API_BASE_URL}/api/admin/feedback`
     );
 
     const data = await response.json();
@@ -312,7 +313,7 @@ const updateFeedbackStatus = async (feedbackId, status) => {
     setFeedbackError("");
 
     const response = await fetch(
-      `http://localhost:5001/api/admin/feedback/${feedbackId}/status`,
+      `${API_BASE_URL}/api/admin/feedback/${feedbackId}/status`,
       {
         method: "PATCH",
         headers: {
@@ -346,7 +347,7 @@ const updateFeedbackStatus = async (feedbackId, status) => {
 const fetchStudentCount = async () => {
   try {
     const response = await fetch(
-      "http://localhost:5001/api/admin/students/count"
+     `${API_BASE_URL}/api/admin/students/count`
     );
 
     const data = await response.json();
@@ -376,7 +377,7 @@ const fetchStudentCount = async () => {
         setRidersError("");
 
         const response = await fetch(
-            "http://localhost:5001/api/admin/riders"
+            `${API_BASE_URL}/api/admin/riders`
         );
 
         const data = await response.json();
@@ -431,9 +432,9 @@ const fetchFareManagementData = async () => {
   try {
    const [fareResponse, locationResponse, categoryResponse] =
   await Promise.all([
-    fetch("http://localhost:5001/api/admin/fare-routes"),
-    fetch("http://localhost:5001/api/locations"),
-    fetch("http://localhost:5001/api/admin/location-categories"),
+    fetch(`${API_BASE_URL}/api/admin/fare-routes`),
+    fetch(`${API_BASE_URL}/api/locations`),
+    fetch(`${API_BASE_URL}/api/admin/location-categories`),
   ]);
 
 const fareData = await fareResponse.json();
@@ -483,7 +484,7 @@ const handleAddLocationCategory = async (event) => {
 
   try {
     const response = await fetch(
-      "http://localhost:5001/api/admin/location-categories",
+      `${API_BASE_URL}/api/admin/location-categories`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -532,7 +533,7 @@ const handleSaveCategoryEdit = async (categoryId) => {
 
   try {
     const response = await fetch(
-      `http://localhost:5001/api/admin/location-categories/${categoryId}`,
+      `${API_BASE_URL}/api/admin/location-categories/${categoryId}`,
       {
         method: "PUT",
         headers: {
@@ -580,7 +581,7 @@ const handleRemoveLocationCategory = async (category) => {
 
     try {
         const response = await fetch(
-            `http://localhost:5001/api/admin/location-categories/${category.id}`,
+            `${API_BASE_URL}/api/admin/location-categories/${category.id}`,
             {
                 method: "DELETE",
             }
@@ -649,8 +650,8 @@ const handleAddCampusLocation = async (event) => {
 
 const response = await fetch(
   isEditing
-    ? `http://localhost:5001/api/admin/locations/${editingLocationId}`
-    : "http://localhost:5001/api/admin/locations",
+    ? `${API_BASE_URL}/api/admin/locations/${editingLocationId}`
+    : `${API_BASE_URL}/api/admin/locations`,
   {
     method: isEditing ? "PUT" : "POST",
     headers: { "Content-Type": "application/json" },
@@ -734,7 +735,7 @@ const handleFareSubmit = async (event) => {
 
     const saveFare = async (passengerCount, fare) => {
       const response = await fetch(
-        "http://localhost:5001/api/admin/fare-routes",
+        `${API_BASE_URL}/api/admin/fare-routes`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -816,7 +817,7 @@ const handleDeactivateFare = async (routeId) => {
 
   try {
     const response = await fetch(
-      `http://localhost:5001/api/admin/fare-routes/${routeId}/deactivate`,
+      `${API_BASE_URL}/api/admin/fare-routes/${routeId}/deactivate`,
       { method: "PATCH" }
     );
 
@@ -892,7 +893,7 @@ const handleDeactivateFareGroup = async (group) => {
   try {
     for (const routeId of routeIds) {
       const response = await fetch(
-        `http://localhost:5001/api/admin/fare-routes/${routeId}/deactivate`,
+        `${API_BASE_URL}/api/admin/fare-routes/${routeId}/deactivate`,
         { method: "PATCH" }
       );
 
@@ -936,7 +937,7 @@ const handleRemoveFareGroup = async (group) => {
   try {
     for (const routeId of routeIds) {
       const response = await fetch(
-        `http://localhost:5001/api/admin/fare-routes/${routeId}`,
+        `${API_BASE_URL}/api/admin/fare-routes/${routeId}`,
         { method: "DELETE" }
       );
 
@@ -1046,7 +1047,7 @@ await fetchFeedback();
  const fetchAvailableRiders = async (rideId) => {
   try {
     const response = await fetch(
-      `http://localhost:5001/api/admin/rides/${rideId}/available-riders`
+      `${API_BASE_URL}/api/admin/rides/${rideId}/available-riders`
     );
 
     const data = await response.json();
@@ -1083,7 +1084,7 @@ const assignRider = async (rideId) => {
     setAssigningRide(rideId);
 
     const response = await fetch(
-      `http://localhost:5001/api/rides/${rideId}/assign`,
+      `${API_BASE_URL}/api/rides/${rideId}/assign`,
       {
         method: "PATCH",
         headers: {
@@ -1145,7 +1146,7 @@ const assignRider = async (rideId) => {
     try {
 
       const response = await fetch(
-        `http://localhost:5001/api/admin/rides/${rideId}/${action}`,
+        `${API_BASE_URL}/api/admin/rides/${rideId}/${action}`,
         {
           method: "PATCH",
         }
@@ -1267,7 +1268,7 @@ const addNewRider = async (event) => {
     setAddingRider(true);
 
     const response = await fetch(
-      "http://localhost:5001/api/admin/riders",
+      `${API_BASE_URL}/api/admin/riders`,
       {
         method: "POST",
 
@@ -1395,7 +1396,7 @@ const updateRiderStatus = async (
     try {
 
         const response = await fetch(
-            `http://localhost:5001/api/admin/riders/${riderId}/status`,
+            `${API_BASE_URL}/api/admin/riders/${riderId}/status`,
             {
                 method: "PATCH",
 
