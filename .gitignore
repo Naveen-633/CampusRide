@@ -20,3 +20,6 @@ npm-debug.log*
 # IDE
 .vscode/
 .idea/
+# Local backup files
+backend/server.backup.js
+campusride_backup.sql

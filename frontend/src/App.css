@@ -3576,7 +3576,10 @@ select {
   align-items: center;
   gap: 1px;
   padding: 6px 6px;
-  margin: 10px 380px;
+ margin: 10px auto;
+width: 100%;
+max-width: 420px;
+box-sizing: border-box;
   background: #eefbee;
   border: 1px solid #bbf7d0;
   border-radius: 12px;
@@ -4619,3 +4622,28 @@ select {
     padding: 18px;
   }
 }
+
+
+/* 4Mi Rides - Mobile layout correction */
+@media screen and (max-width: 600px) {
+  .available-riders-card {
+    width: 100%;
+    max-width: 100%;
+    margin: 12px 0;
+    padding: 12px;
+    box-sizing: border-box;
+  }
+
+  .available-riders-heading {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    text-align: center;
+  }
+
+  .available-riders-card p {
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+}
+
