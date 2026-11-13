@@ -1,11 +1,17 @@
 
+
 .location-search-wrapper {
   position: relative;
   width: 100%;
   margin-bottom: 22px;
   text-align: left;
-  z-index: 5;
+  z-index: 1;
 }
+
+.location-search-wrapper:focus-within {
+  z-index: 2;
+}
+
 
 .location-search-label {
   display: block;
@@ -71,17 +77,21 @@
 }
 
 .location-search-results {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  right: 0;
-  max-height: 260px;
+  position: relative;
+  top: auto;
+  left: auto;
+  right: auto;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 6px;
+  max-height: 220px;
   overflow-y: auto;
+  overscroll-behavior: contain;
   background: #fff;
   border: 1px solid #e0e5ee;
   border-radius: 12px;
-  box-shadow: 0 12px 28px rgba(20, 30, 50, 0.16);
-  z-index: 1000;
+  box-shadow: 0 8px 20px rgba(20, 30, 50, 0.12);
+  z-index: 2;
 }
 
 .location-search-option {
@@ -117,10 +127,6 @@
   text-align: center;
   color: #7b8495;
   font-size: 14px;
-}
-
-.location-search-wrapper:focus-within {
-  z-index: 20;
 }
 
 @media (max-width: 600px) {
